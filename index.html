@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>托业词汇记忆卡片 TOEIC Vocabulary Cards </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            --card-front-bg: linear-gradient(135deg, #2c3e50, #4ca1af);
+            --card-back-bg: linear-gradient(135deg, #4a00e0, #8e2de2);
+            --text-light: #fff;
+            --text-accent: #ffd700;
+            --text-subtle: #e0e0ff;
+            --progress-bar-bg: linear-gradient(to right, #4facfe, #00f2fe);
+            --btn-main-bg: linear-gradient(to right, #00c6ff, #0072ff);
+            --btn-random-bg: linear-gradient(to right, #ff8c00, #ff2d55);
+            --btn-example-bg: linear-gradient(to right, #8e2de2, #4a00e0);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--primary-bg);
+            min-height: 100vh;
+            display: flex;
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-accent);
+        }
+        .chapter-list {
+            list-style: none;
+        }
+        .chapter-btn {
+            display: block;
+            width: 100%;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-subtle);
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        .chapter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border-color: var(--text-accent);
+        }
+        .chapter-btn.active {
+            background: var(--text-accent);
+            color: #1a2a6c;
+            font-weight: bold;
+            border-color: var(--text-accent);
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            animation: fadeInDown 1s ease;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            background: linear-gradient(to right, #ffd700, #ffffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            color: var(--text-subtle);
+            font-weight: bold;
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--progress-bar-bg);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 720px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-light);
+        }
+        
+        .card-container {
+            width: 90%;
+            max-width: 500px;
+            height: 380px;
+            perspective: 1000px;
+            margin: 0 15px;
+        }
+        
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .card-front {
+            background: var(--card-front-bg);
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-back {
+            background: var(--card-back-bg);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .word {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .phonetic {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            color: #c0e8ff;
+        }
+        
+        .speaker-container { display: flex; gap: 15px; margin-top: 10px; }
+        .speaker-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: var(--text-accent);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        .speaker-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+        
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            color: var(--text-subtle);
+        }
+        
+        .meaning {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--text-accent);
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .example {
+            width: 100%;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            font-style: italic;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--text-accent);
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .example-en { margin-bottom: 10px; padding-right: 30px; }
+        .example-cn { font-size: 1rem; opacity: 0.9; padding-right: 30px; }
+        .example-speaker { position: absolute; right: 10px; top: 10px; color: var(--text-accent); cursor: pointer; transition: transform 0.2s; }
+        .example-speaker:hover { transform: scale(1.2); }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            width: 90%;
+            max-width: 500px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            background: var(--btn-main-bg);
+            color: var(--text-light);
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); }
+        .btn:active { transform: translateY(1px); }
+        
+        .btn-random { background: var(--btn-random-bg); }
+        .btn-example { background: var(--btn-example-bg); }
+        
+        .counter {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            max-width: 500px;
+        }
+        
+        .shortcuts {
+            margin-top: 10px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .shortcut {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-container { margin-left: 0; }
+            .sidebar-toggle { display: flex; justify-content: center; align-items: center; }
+        }
+
+        @media (max-width: 720px) {
+            .main-content-wrapper { max-width: 100vw; }
+            .card-container { margin: 0 5px; width: 75%; }
+            .nav-btn { font-size: 2rem; width: 40px; }
+        }
+
+        @media (max-width: 600px) {
+            .card-container { height: 350px; }
+            .word { font-size: 2.5rem; }
+            .meaning { font-size: 1.8rem; }
+            .example { font-size: 1rem; }
+            .btn { padding: 10px 20px; font-size: 1rem; }
+            .header h1 { font-size: 2rem; }
+        }
+        
+        @media (max-width: 400px) {
+            .card-container { height: 320px; }
+            .word { font-size: 2rem; }
+            .controls { gap: 10px; }
+            .btn { padding: 8px 16px; font-size: 0.9rem; }
+        }
+        
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .floating { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+    <nav class="sidebar" id="sidebar">
+        <h2 class="sidebar-header">Chapters</h2>
+        <ul class="chapter-list" id="chapterList"></ul>
+    </nav>
+
+    <div class="main-container" id="mainContainer">
+        <div class="header">
+            <h1><i class="fas fa-book-open"></i> 托业词汇记忆卡片 TOEIC Vocabulary</h1>
+            <p id="chapterTitle">交通运输 Transportation</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <div class="main-content-wrapper">
+            <button class="nav-btn" id="prevBtn" aria-label="Previous Word">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="card-container">
+                <div class="card" id="card">
+                    <div class="card-face card-front">
+                        <div class="word" id="word"></div>
+                        <div class="phonetic" id="phonetic"></div>
+                        <div class="speaker-container">
+                            <div class="speaker-btn" id="wordSpeaker"><i class="fas fa-volume-up"></i></div>
+                            <div class="speaker-btn floating" id="exampleSpeakerFront"><i class="fas fa-quote-right"></i></div>
+                        </div>
+                        <div class="hint">点击卡片查看释义和例句</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="meaning" id="meaning"></div>
+                        <div class="example">
+                            <div class="example-en" id="exampleEn"></div>
+                            <div class="example-cn" id="exampleCn"></div>
+                            <div class="example-speaker" id="exampleSpeaker"><i class="fas fa-volume-up"></i></div>
+                        </div>
+                        <div class="hint">点击卡片返回</div>
+                    </div>
+                </div>
+            </div>
+            <button class="nav-btn" id="nextBtn" aria-label="Next Word">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="flipBtn"><i class="fas fa-sync-alt"></i> 翻转卡片</button>
+            <button class="btn btn-random" id="randomBtn"><i class="fas fa-random"></i> 随机下一个</button>
+            <button class="btn" id="speakWordBtn"><i class="fas fa-volume-up"></i> 单词发音</button>
+            <button class="btn btn-example" id="speakExampleBtn"><i class="fas fa-quote-right"></i> 例句发音</button>
+        </div>
+        
+        <div class="counter" id="counter"></div>
+        
+        <div class="footer">
+            <p>HAN FEIXIANG's carefully crafted series for HOANG THANH TAM | TOEIC </p>
+            <div class="shortcuts">
+                <div class="shortcut">空格键: 翻转</div>
+                <div class="shortcut">←: 上一个</div>
+                <div class="shortcut">→: 下一个</div>
+                <div class="shortcut">W: 单词发音</div>
+                <div class="shortcut">E: 例句发音</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allWords = {
+            "交通运输 Transportation": [
+                { word: "arrival", phonetic: "/əˈraɪvəl/", meaning: "到达", exampleEn: "Flight status, arrival, and departure times are available on the airline website.", exampleCn: "航班状态、到达和起飞时间可在航空公司网站上查询。" },
+                { word: "boarding pass", phonetic: "/ˈbɔːrdɪŋ pæs/", meaning: "登机牌", exampleEn: "Passengers will be issued a boarding pass at the check-in counter.", exampleCn: "乘客将在值机柜台领取登机牌。" },
+                { word: "captain", phonetic: "/ˈkæptɪn/", meaning: "机长", exampleEn: "The captain and flight crew are responsible for your comfort and safety.", exampleCn: "机长和机组人员负责您的舒适和安全。" },
+                { word: "check-in counter", phonetic: "/ˈtʃek ɪn ˈkaʊntər/", meaning: "登机柜台", exampleEn: "Please arrive at the check-in counter one hour prior to departure.", exampleCn: "请于起飞前一小时到达登机柜台。" },
+                { word: "customs", phonetic: "/ˈkʌstəmz/", meaning: "海关", exampleEn: "After passing through customs, please proceed directly to the Arrivals Hall.", exampleCn: "通过海关后，请直接前往到达大厅。" },
+                { word: "departure", phonetic: "/dɪˈpɑːrtʃər/", meaning: "离开；出发", exampleEn: "All departures have been postponed due to the approaching typhoon.", exampleCn: "由于台风临近，所有出发航班均已推迟。" },
+                { word: "destination", phonetic: "/ˌdestɪˈneɪʃn/", meaning: "目的地", exampleEn: "Star Travel offers package tours to over 100 international destinations.", exampleCn: "星辰旅行社提供前往100多个国际目的地的包价旅游。" },
+                { word: "fare", phonetic: "/fer/", meaning: "票价", exampleEn: "The fare of $350 does not include the airport taxes or travel insurance.", exampleCn: "350美元的票价不包括机场税或旅行保险。" },
+                { word: "flight attendant", phonetic: "/flaɪt əˈtendənt/", meaning: "空服人员", exampleEn: "Flight attendants are required to provide service in English on international flights.", exampleCn: "国际航班上的空服人员必须提供英语服务。" },
+                { word: "itinerary", phonetic: "/aɪˈtɪnəreri/", meaning: "行程", exampleEn: "Your travel itinerary includes day tours to several well-known tourist attractions.", exampleCn: "您的旅行行程包括前往几个著名旅游景点的日间游览。" },
+                { word: "mechanic", phonetic: "/məˈkænɪk/", meaning: "技工", exampleEn: "All tour buses are inspected once a month by a certified mechanic.", exampleCn: "所有旅游巴士每月由认证技工检查一次。" },
+                { word: "package tour", phonetic: "/ˈpækɪdʒ tʊr/", meaning: "包价旅游", exampleEn: "Discounted package tours are offered to all members of the Travel Club.", exampleCn: "所有旅游俱乐部会员均可享受折扣包价旅游。" },
+                { word: "passenger", phonetic: "/ˈpæsɪndʒər/", meaning: "乘客", exampleEn: "The number of passengers commuting to work by subway is increasing.", exampleCn: "乘坐地铁通勤上班的乘客数量正在增加。" },
+                { word: "reservation", phonetic: "/ˌrezərˈveɪʃn/", meaning: "预订", exampleEn: "Reservations can be made online or by calling our customer service hotline.", exampleCn: "可通过在线或致电客服热线进行预订。" },
+                { word: "travel agent", phonetic: "/ˈtrævl ˈeɪdʒənt/", meaning: "旅行社专员", exampleEn: "Information on European Railway passes can be obtained from your travel agent.", exampleCn: "有关欧洲铁路通票的信息可从您的旅行社专员处获取。" },
+                { word: "approach", meaning: "接近", exampleEn: "We are approaching our final destination. Please prepare for landing.", exampleCn: "我们正在接近最终目的地，请准备着陆。" },
+                { word: "assist", meaning: "帮忙", exampleEn: "Flight attendants will assist you if you wish to purchase duty-free items.", exampleCn: "如果您想购买免税商品，空服人员将为您提供帮助。" },
+                { word: "board", meaning: "登机", exampleEn: "Passengers in seats 50 to 80 are requested to board the aircraft first.", exampleCn: "座位号为50至80的乘客请先登机。" },
+                { word: "cancel", meaning: "取消", exampleEn: "All inbound and outbound flights have been canceled due to thick fog.", exampleCn: "由于大雾，所有进出港航班均已取消。" },
+                { word: "commute", meaning: "通勤", exampleEn: "Carpooling is an environmentally-friendly way to commute to work.", exampleCn: "拼车是一种环保的通勤方式。" },
+                { word: "confirm", meaning: "确认", exampleEn: "An e-mail will be sent confirming your reservation and travel itinerary.", exampleCn: "将发送一封电子邮件确认您的预订和旅行行程。" },
+                { word: "continue", meaning: "继续", exampleEn: "Local public transportation continues to offer excellent service at low cost.", exampleCn: "当地公共交通继续以低成本提供优质服务。" },
+                { word: "cooperate", meaning: "合作", exampleEn: "Sky Airlines cooperates with car rental agencies in all of its destination cities.", exampleCn: "天空航空公司与其所有目的地城市的汽车租赁机构合作。" },
+                { word: "decide", meaning: "决定", exampleEn: "We have yet to decide the destination for our annual company outing.", exampleCn: "我们尚未决定年度公司郊游的目的地。" },
+                { word: "encourage", meaning: "鼓励", exampleEn: "Passengers are encouraged to check their belongings before exiting the train.", exampleCn: "鼓励乘客在下车前检查随身物品。" },
+                { word: "expand", meaning: "扩大", exampleEn: "The cruise company has expanded their fleet to include five luxury ships.", exampleCn: "邮轮公司已扩大其船队，增加了五艘豪华邮轮。" },
+                { word: "forward", meaning: "转寄；转交", exampleEn: "Your baggage will be forwarded through to your final destination.", exampleCn: "您的行李将被转寄到最终目的地。" },
+                { word: "include", meaning: "包含", exampleEn: "The tour package includes bus tickets, accommodation, meals and entertainment.", exampleCn: "旅游套餐包括巴士票、住宿、餐食和娱乐活动。" },
+                { word: "locate", meaning: "位于", exampleEn: "Lavatories are located at the front and rear of the plane cabin.", exampleCn: "洗手间位于飞机机舱的前部和后部。" },
+                { word: "prepare", meaning: "准备", exampleEn: "Janet is preparing the schedule for our trip to Korea next month.", exampleCn: "珍妮特正在为我们下个月去韩国的旅行准备行程表。" },
+                { word: "be accessible by", meaning: "可借由……容易达到", exampleEn: "The marketing convention will be held in a small seaside resort, which is about one hour from the airport and easily accessible by car or scenic train.", exampleCn: "营销大会将在一个小型海滨度假胜地举行，距离机场约一小时车程，可轻松驾车或乘坐观光列车到达。" },
+                { word: "be included in", meaning: "包含于", exampleEn: "The cost of a round-trip airline ticket is included in the seven-day cruise package.", exampleCn: "往返机票的费用包含在为期七天的邮轮套餐中。"}
+            ],
+            "旅游计划 Travel Plans": [
+                { word: "announcement", meaning: "宣布", exampleEn: "Please listen to the following announcement for important traffic information.", exampleCn: "请收听以下关于重要交通信息的通知。" },
+                { word: "apology", meaning: "道歉", exampleEn: "Our apologies for the delay. Boarding will commence immediately.", exampleCn: "我们对延误表示歉意。现在马上开始登机。" },
+                { word: "complimentary", meaning: "赠送的", exampleEn: "During your layover, please enjoy a complimentary drink in the airport lounge.", exampleCn: "在您中途停留期间，请在机场休息室享用免费饮品。" },
+                { word: "delay", meaning: "延迟", exampleEn: "Delays can be expected for commuters on major highways during peak hours.", exampleCn: "高峰时段，主要高速公路上的通勤者可能会遇到延误。" },
+                { word: "detour", meaning: "绕道", exampleEn: "The road is closed for construction, so all vehicles must make a detour.", exampleCn: "道路因施工关闭，所有车辆必须绕行。" },
+                { word: "disruption", meaning: "中断", exampleEn: "The strike at public transit has caused major disruption for commuters.", exampleCn: "公交系统罢工给通勤者造成了严重中断。" },
+                { word: "economy class", meaning: "经济舱", exampleEn: "Our company policy states that all staff must fly economy class.", exampleCn: "我们公司的政策规定所有员工必须乘坐经济舱。" },
+                { word: "faulty", meaning: "故障的", exampleEn: "Faulty brakes were the most likely cause of the bus accident.", exampleCn: "刹车失灵很可能是这次公交车事故的原因。" },
+                { word: "immigration", meaning: "移民", exampleEn: "Immigration officers have the authority to deny travelers entry into a country.", exampleCn: "移民官有权拒绝旅客进入一个国家。" },
+                { word: "inconvenience", meaning: "不便", exampleEn: "Apologies for the inconvenience, but we need to inspect all carry-on luggage.", exampleCn: "对于给您带来的不便我们深表歉意，但我们需要检查所有手提行李。" },
+                { word: "information desk", meaning: "询问处", exampleEn: "Train departure and arrival schedules can be obtained at the information desk.", exampleCn: "火车的出发和到达时间表可以在问讯处获取。" },
+                { word: "mechanical problem", meaning: "机械问题", exampleEn: "Our flight was postponed because of mechanical problems with one of the engines.", exampleCn: "由于其中一个引擎出现机械故障，我们的航班被推迟了。" },
+                { word: "platform", meaning: "站台", exampleEn: "The express train will be arriving at Platform 5 in two minutes.", exampleCn: "特快列车将于两分钟后到达5号站台。" },
+                { word: "route", meaning: "路线", exampleEn: "As we have a very tight schedule, a more direct route would be preferred.", exampleCn: "由于我们的日程非常紧张，所以最好选择一条更直接的路线。" },
+                { word: "terminal", meaning: "航站", exampleEn: "For international departure, please go to the second floor of Terminal 2.", exampleCn: "国际出发请到2号航站楼二楼。" },
+                { word: "admit", meaning: "允许", exampleEn: "Passengers will not be admitted on the aircraft without the correct documentation.", exampleCn: "没有正确证件的乘客将不被允许登机。" },
+                { word: "check", meaning: "检查", exampleEn: "It is standard procedure for customs officers to check passenger luggage.", exampleCn: "海关官员检查旅客行李是标准程序。" },
+                { word: "compare", meaning: "对照", exampleEn: "Compared with the old one, the new bus terminal is much more convenient.", exampleCn: "与旧的相比，新的公交总站要方便得多。" },
+                { word: "delay", meaning: "耽搁", exampleEn: "We were delayed at customs and missed our connecting flight.", exampleCn: "我们在海关被耽搁了，错过了转机航班。" },
+                { word: "depend on", meaning: "依靠", exampleEn: "Passengers depend on the captain and flight crew for in-flight safety.", exampleCn: "乘客依靠机长和机组人员来保证飞行安全。" },
+                { word: "entitle", meaning: "给......权力", exampleEn: "Passengers are entitled to bring two bottles of duty-free alcohol through customs.", exampleCn: "乘客有权携带两瓶免税酒通过海关。" },
+                { word: "focus on", meaning: "集中于", exampleEn: "City Transit has been focusing on improving services and reducing travel delays.", exampleCn: "城市公交一直致力于改善服务和减少出行延误。" },
+                { word: "improve", meaning: "改进", exampleEn: "E-tickets have been introduced to improve passenger check-in efficiency.", exampleCn: "引入电子客票以提高乘客值机效率。" },
+                { word: "protect", meaning: "保护", exampleEn: "Airbags can protect motorists from injury in the event of an accident.", exampleCn: "在发生事故时，安全气囊可以保护驾车者免受伤害。" },
+                { word: "reflect", meaning: "反射;反映", exampleEn: "To ensure visibility at night, road signs are designed to reflect light.", exampleCn: "为确保夜间能见度，路牌被设计成能反光。" },
+                { word: "satisfy", meaning: "满足", exampleEn: "Satisfying passengers with outstanding service is the key to building brand loyalty.", exampleCn: "以卓越的服务满足乘客是建立品牌忠诚度的关键。" },
+                { word: "seek", meaning: "寻找", exampleEn: "Travelers seeking current visa information should consult a local embassy.", exampleCn: "寻求当前签证信息的旅行者应咨询当地大使馆。" },
+                { word: "suspend", meaning: "中止", exampleEn: "Flights to Sydney will be suspended in April due to low passenger volume.", exampleCn: "由于客流量低，4月份飞往悉尼的航班将暂停。" },
+                { word: "understand", meaning: "了解", exampleEn: "Make sure that you understand the fare rules before purchasing a ticket.", exampleCn: "购票前请务必了解票价规则。" },
+                { word: "verify", meaning: "查验", exampleEn: "The immigration officer will verify that your passport and visa are valid.", exampleCn: "移民官将核实您的护照和签证是否有效。" },
+                { word: "for the duration of", meaning: "在......期间", exampleEn: "When we looked into it in detail, it was cheaper for us to get rental car for the duration of the trip.", exampleCn: "我们仔细研究后发现，在旅途中租车对我们来说更便宜。" },
+                { word: "in the event of", meaning: "由于", exampleEn: "In the event of severe winter weather, bus routes may be temporarily suspended until the roads are cleared and safe for travel.", exampleCn: "如果冬季天气恶劣，公交线路可能会暂时中断，直到道路清理干净并安全通行为止。" },
+                { word: "reach one's destination", meaning: "抵达目的地", exampleEn: "As the flight was delayed, We didn't reach our destination until just after midnight.", exampleCn: "由于航班延误，我们直到午夜过后才到达目的地。" },
+                { word: "check for", meaning: "检查出", exampleEn: "To ensure your safety, all vehicles are checked monthly for any potential problems.", exampleCn: "为确保您的安全，所有车辆每月都会检查是否存在任何潜在问题。" },
+                { word: "result in", meaning: "产生......结果", exampleEn: "Increased security measures at international airports will most likely result in significant delays for travelers.", exampleCn: "国际机场加强安检措施很可能会给旅客带来严重延误。" },
+                { word: "go according to plan", meaning: "按照计划进行", exampleEn: "The airport renovations should be completed by early August if everything goes according to plan.", exampleCn: "如果一切按计划进行，机场的翻新工程应在八月初完成。" },
+                { word: "have difficulty doing", meaning: "在做......遇到困难", exampleEn: "The maintenance crew is having difficulty determining the cause of the system malfunction.", exampleCn: "维修人员在确定系统故障的原因时遇到了困难。" },
+                { word: "neglect to do", meaning: "忽略;忘记做", exampleEn: "The tour operator neglected to mention that the air conditioning system on the bus was not working properly.", exampleCn: "旅行社忽略了提及巴士上的空调系统工作不正常。" }
+            ],
+            "饭店住宿 Hotels": [
+                { word: "accommodation", meaning: "住宿", exampleEn: "Due to limited availability, accommodations should be booked well in advance.", exampleCn: "由于房源有限，住宿应提前预订。" },
+                { word: "availability", meaning: "可用性", exampleEn: "Room availability decreases during the tourist season and on public holidays.", exampleCn: "旅游旺季和公共假日期间，客房供应量会减少。" },
+                { word: "check in/out", meaning: "报到/离开", exampleEn: "To avoid additional charges, hotel guests should check out before 11 A.M.", exampleCn: "为避免额外收费，酒店客人应在上午11点前退房。" },
+                { word: "complaint", meaning: "抱怨", exampleEn: "Complaints should be directed to the hotel manager on duty.", exampleCn: "投诉应向值班的酒店经理提出。" },
+                { word: "coupon", meaning: "优惠券", exampleEn: "Guests with promotional coupons are entitled to a 20 percent discount.", exampleCn: "持优惠券的客人可享受八折优惠。" },
+                { word: "facilities", meaning: "设施", exampleEn: "Please inquire at the front desk for a list of available facilities.", exampleCn: "有关可用设施的列表，请到前台咨询。" },
+                { word: "front desk", meaning: "柜台", exampleEn: "Receptionists are on duty at the front desk until 12 P.M.", exampleCn: "前台接待员值班到晚上12点。" },
+                { word: "hotel chain", meaning: "连锁旅馆", exampleEn: "Some hotel chains offer membership benefits to attract repeat business.", exampleCn: "一些连锁酒店提供会员福利以吸引回头客。" },
+                { word: "housekeeping", meaning: "客房清洁", exampleEn: "Housekeeping changes towels and linens every two days unless otherwise requested.", exampleCn: "除非另有要求，客房部每两天更换一次毛巾和床单。" },
+                { word: "lobby", meaning: "大厅", exampleEn: "Elevators are located in the lobby, opposite the main entrance.", exampleCn: "电梯位于大厅，正门对面。" },
+                { word: "wake-up call", meaning: "起床提醒电话", exampleEn: "Wake-up calls can be programmed automatically using the telephone in your room.", exampleCn: "可以使用房间里的电话自动设置叫醒服务。" },
+                { word: "registration form", meaning: "登记表格", exampleEn: "Upon arrival, guests are asked to fill out a registration form.", exampleCn: "客人抵达后需填写登记表。" },
+                { word: "amenities", meaning: "设施", exampleEn: "Amenities at the hotel include a swimming pool, spa, sauna and gym.", exampleCn: "酒店的便利设施包括游泳池、水疗中心、桑拿浴室和健身房。" },
+                { word: "room rate", meaning: "房价", exampleEn: "Room rates listed include taxes, surcharges and a complimentary breakfast.", exampleCn: "所列房价包含税费、附加费和免费早餐。" },
+                { word: "room service", meaning: "客房服务", exampleEn: "If the hotel restaurants are closed, we can always order room service.", exampleCn: "如果酒店餐厅关门了，我们随时可以叫客房服务。" },
+                { word: "adjust", meaning: "调整", exampleEn: "We will adjust the room rate to reflect the discounted price.", exampleCn: "我们将调整房价以反映折扣价。" },
+                { word: "appreciate", meaning: "感谢", exampleEn: "Customer comments, suggestions, and feedback are always greatly appreciated.", exampleCn: "我们随时欢迎客户的意见、建议和反馈。" },
+                { word: "complain", meaning: "抱怨", exampleEn: "The guest in Room 801 has complained that there is no hot water.", exampleCn: "801房间的客人抱怨没有热水。" },
+                { word: "book", meaning: "预订", exampleEn: "Reservations can be booked online or through a customer service agent.", exampleCn: "可以通过网络或客服代理预订。" },
+                { word: "designate", meaning: "指定", exampleEn: "The exercise facilities and pool area are designated for hotel guests only.", exampleCn: "健身设施和泳池区仅供酒店客人使用。" },
+                { word: "explain", meaning: "说明", exampleEn: "Could you explain the difference between a deluxe and a super deluxe room?", exampleCn: "你能解释一下豪华房和超豪华房的区别吗？" },
+                { word: "influence", meaning: "影响", exampleEn: "The season and the day of the week influence room availability.", exampleCn: "季节和星期几会影响房间的供应情况。" },
+                { word: "monitor", meaning: "监视", exampleEn: "Hotel managers monitor staff performance and customer satisfaction.", exampleCn: "酒店经理监督员工表现和顾客满意度。" },
+                { word: "prefer", meaning: "偏好", exampleEn: "I'd prefer a room that overlooks the park rather than the street.", exampleCn: "我想要一个能俯瞰公园而不是街道的房间。" },
+                { word: "provide", meaning: "提供", exampleEn: "Services provided include wake-up calls, daily housekeeping and room service.", exampleCn: "提供的服务包括叫醒服务、每日客房清洁和客房送餐服务。" },
+                { word: "realize", meaning: "了解", exampleEn: "Most visitors don't realize that the hotel used to be a foreign embassy.", exampleCn: "大多数游客都不知道这家酒店以前是外国大使馆。" },
+                { word: "reconfirm", meaning: "再确认", exampleEn: "Sam always reconfirms our reservations a couple of days before we travel.", exampleCn: "山姆总是在我们旅行前几天再次确认我们的预订。" },
+                { word: "extend", meaning: "延长", exampleEn: "To extend your stay, please notify hotel reception at least 24 hours in advance.", exampleCn: "如需延长住宿，请至少提前24小时通知酒店前台。" },
+                { word: "retain", meaning: "保留", exampleEn: "Despite the recent renovations, the hotel has still retained its original charm.", exampleCn: "尽管最近进行了翻新，这家酒店仍然保留了其原有的魅力。" },
+                { word: "upgrade", meaning: "升级", exampleEn: "To make up for the inconvenience, your room has been upgraded to a deluxe suite.", exampleCn: "为了弥补给您带来的不便，您的房间已升级为豪华套房。" },
+                { word: "be located close to", meaning: "位于.......附近", exampleEn: "Our hotel was located close to the subway station, so transportation was extremely convenient.", exampleCn: "我们的酒店靠近地铁站，交通非常便利。" },
+                { word: "have a reputation for", meaning: "有......的名声", exampleEn: "The Fenton Hotel has a reputation for attention to detail and outstanding guest service.", exampleCn: "芬顿酒店以注重细节和卓越的宾客服务而闻名。" },
+                { word: "keep a record of", meaning: "纪录", exampleEn: "The accountant requires that we keep a detailed record of all our hotel and travel expenses.", exampleCn: "会计要求我们详细记录所有酒店和差旅费用。" },
+                { word: "settle one's bill", meaning: "付账单", exampleEn: "After settling her bill, Lily sat in the lobby waiting for the airport shuttle bus.", exampleCn: "结完账后，莉莉坐在大堂等候机场班车。" },
+                { word: "spend time doing", meaning: "花费时间做", exampleEn: "Rather than spending time sitting in his hotel, Roger spent the weekend discovering Hong Kong.", exampleCn: "罗杰没有花时间待在酒店里，而是整个周末都在探索香港。" }
+            ],
+            "休闲娱乐 Events": [
+                { word: "admission", meaning: "入场许可", exampleEn: "Admission tickets for the exhibition can be purchased at the main entrance.", exampleCn: "展览会的门票可在主入口处购买。" },
+                { word: "audience", meaning: "观众", exampleEn: "The outdoor performance attracted an audience of more than fifty thousand people.", exampleCn: "这场户外表演吸引了超过五万名观众。" },
+                { word: "collection", meaning: "收藏品", exampleEn: "The National Art Museum is showing a collection of works by Picasso.", exampleCn: "国家美术馆正在展出毕加索的作品集。" },
+                { word: "critic", meaning: "评论家", exampleEn: "The film has been acclaimed by critics as a modern masterpiece.", exampleCn: "这部电影被评论家誉为现代杰作。" },
+                { word: "concert", meaning: "演唱会", exampleEn: "The concert was sold out the moment the tickets went on sale.", exampleCn: "音乐会的门票一开售就销售一空。" },
+                { word: "director", meaning: "导演", exampleEn: "Hitchcock is regarded as one of the greatest movie directors of all time.", exampleCn: "希区柯克被认为是有史以来最伟大的电影导演之一。" },
+                { word: "entertainment", meaning: "娱乐", exampleEn: "On average, consumers spend 15 percent of their income on personal entertainment.", exampleCn: "平均而言，消费者将15%的收入用于个人娱乐。" },
+                { word: "exhibition", meaning: "展览", exampleEn: "The Royal Museum's latest exhibition, Pharaohs of Ancient Egypt, is extremely popular.", exampleCn: "皇家博物馆最新的展览“古埃及法老”非常受欢迎。" },
+                { word: "gallery", meaning: "美术馆", exampleEn: "The new gallery will feature exhibitions of modern art and sculpture.", exampleCn: "新画廊将举办现代艺术和雕塑展览。" },
+                { word: "guided tour", meaning: "导览团", exampleEn: "Our guided tour will leave from the reception area at 11:00 A.M.", exampleCn: "我们的导览团将于上午11:00从接待区出发。" },
+                { word: "intermission", meaning: "中场休息", exampleEn: "Tea, coffee, and snacks will be served during the intermission.", exampleCn: "中场休息期间将提供茶、咖啡和点心。" },
+                { word: "performance", meaning: "表演", exampleEn: "Although the lead actress has the flu, the performance will still go on.", exampleCn: "虽然女主角得了流感，但演出仍将继续。" },
+                { word: "producer", meaning: "制作人", exampleEn: "The producer is well-known for several hit TV shows she has produced.", exampleCn: "这位制作人因制作了多部热门电视剧而闻名。" },
+                { word: "review", meaning: "评论", exampleEn: "Generally speaking, the critic's review of the play was favorable.", exampleCn: "总的来说，评论家对这出戏的评论是正面的。" },
+                { word: "sculpture", meaning: "雕像", exampleEn: "The sculptures in the zoo are of cartoon characters popular with children.", exampleCn: "动物园里的雕塑是受孩子们欢迎的卡通人物。" },
+                { word: "approve", meaning: "批准", exampleEn: "The museum director has not yet approved sending the paintings overseas.", exampleCn: "博物馆馆长尚未批准将这些画作送往海外。" },
+                { word: "create", meaning: "创造", exampleEn: "This building was created to give people a sense that they are in a rainforest.", exampleCn: "这座建筑的创造旨在给人一种身处雨林的感觉。" },
+                { word: "direct", meaning: "指导", exampleEn: "Nadia used her experience to direct others on how to perform the dance.", exampleCn: "纳迪亚用她的经验指导别人如何跳舞。" },
+                { word: "hang", meaning: "挂上", exampleEn: "The paintings hung in this private gallery are all famous works of art.", exampleCn: "挂在这个私人画廊里的画都是著名的艺术品。" },
+                { word: "intend", meaning: "意图", exampleEn: "Following the movie's success, the movie company intends to produce a sequel.", exampleCn: "继电影成功之后，电影公司打算制作续集。" },
+                { word: "invite", meaning: "邀请", exampleEn: "All employees are invited to join this Friday's free staff movie night.", exampleCn: "所有员工都被邀请参加本周五的免费员工电影之夜。" },
+                { word: "obtain", meaning: "获得", exampleEn: "Lily obtained a season ticket, allowing her to visit the gallery anytime.", exampleCn: "莉莉买了一张季票，可以随时参观画廊。" },
+                { word: "organize", meaning: "组织;整理", exampleEn: "The museum is organizing a collection of works by famous Dutch painters.", exampleCn: "该博物馆正在组织一个由著名荷兰画家创作的作品集。" },
+                { word: "pick", meaning: "挑选", exampleEn: "The judges picked an obscure movie for the international film festival.", exampleCn: "评委们为国际电影节挑选了一部不起眼的电影。" },
+                { word: "promote", meaning: "宣传", exampleEn: "This movie has been heavily promoted both online and in the media.", exampleCn: "这部电影在网络和媒体上都得到了大力宣传。" },
+                { word: "reach", meaning: "到达", exampleEn: "Broadcasts of major sporting events reach millions of people at a time.", exampleCn: "重大体育赛事的转播一次能覆盖数百万人。" },
+                { word: "regard", meaning: "认为是", exampleEn: "Produced sixty years ago, the movie is regarded as a classic.", exampleCn: "这部六十年前制作的电影被视为经典。" },
+                { word: "remain", meaning: "留下", exampleEn: "The actors remained on stage as the audience applauded wildly.", exampleCn: "当观众疯狂鼓掌时，演员们仍然留在舞台上。" },
+                { word: "select", meaning: "选择", exampleEn: "The software allows users to select from a wide range of movies.", exampleCn: "该软件允许用户从各种电影中进行选择。" },
+                { word: "spend", meaning: "花费", exampleEn: "Tourists don't mind spending hundreds of dollars to see a Broadway musical.", exampleCn: "游客不介意花几百美元去看一场百老汇音乐剧。" },
+                { word: "along with", meaning: "连同", exampleEn: "While in Paris, Sarah found time to visit the Louvre Museum along with several famous art galleries.", exampleCn: "在巴黎期间，莎拉抽出时间参观了卢浮宫博物馆以及几家著名的美术馆。" },
+                { word: "be eager to", meaning: "渴望做某事", exampleEn: "As a classical music fan, Oscar is extremely eager to attend the concert by the touring Austrian Symphony Orchestra.", exampleCn: "作为古典音乐迷，奥斯卡非常渴望参加奥地利交响乐团巡回演出的音乐会。" },
+                { word: "provide B to A", meaning: "提供B给A", exampleEn: "The exhibition provided the people of the city with a wonderful opportunity to see works by famous Renaissance painters.", exampleCn: "这次展览为市民提供了一个欣赏著名文艺复兴时期画家作品的绝佳机会。" },
+                { word: "reputation of", meaning: ".......的名声", exampleEn: "The city's gallery of modern art has a growing reputation for showing works by influential new artists.", exampleCn: "该市的现代艺术馆因展出有影响力的新艺术家的作品而声誉日隆。" },
+                { word: "receive an award for", meaning: "获得奖项", exampleEn: "The director received a lifetime achievement award for his contribution to the cinematic arts.", exampleCn: "这位导演因其对电影艺术的贡献而获得了终身成就奖。" }
+            ],
+            "外出用餐 Dining Out": [
+                { word: "atmosphere", meaning: "气氛", exampleEn: "The atmosphere at Scotty's Seafood Grill is relaxed and comfortable.", exampleCn: "Scotty's 海鲜烧烤餐厅的气氛轻松舒适。" },
+                { word: "banquet", meaning: "宴会", exampleEn: "Tanya has already selected a company to cater for the year-end banquet.", exampleCn: "塔尼娅已经选定了一家公司来承办年终宴会。" },
+                { word: "cashier", meaning: "收银员", exampleEn: "Please pay your bill at the cashier's desk located near the main entrance.", exampleCn: "请到主入口附近的收银台付款。" },
+                { word: "caterer", meaning: "酒席承办人", exampleEn: "The caterer is scheduled to arrive two hours before the reception dinner.", exampleCn: "酒席承办人定于晚宴前两小时到达。" },
+                { word: "diner", meaning: "用餐的人", exampleEn: "Diners were treated to a wonderful combination of French food and wine.", exampleCn: "用餐者享用了法国美食和美酒的完美结合。" },
+                { word: "dish", meaning: "菜肴", exampleEn: "All our dishes are made with organic ingredients sourced from local farms.", exampleCn: "我们所有的菜肴都采用来自当地农场的有机食材制成。" },
+                { word: "flavor", meaning: "口味", exampleEn: "Two Sisters Ice Cream is famous for its unusual range of flavors.", exampleCn: "“两姐妹”冰淇淋以其不寻常的口味系列而闻名。" },
+                { word: "ingredient", meaning: "食材", exampleEn: "Only the finest ingredients are selected for use in our award-winning dishes.", exampleCn: "我们屡获殊荣的菜肴只选用最优质的食材。" },
+                { word: "portion", meaning: "份量", exampleEn: "The portions served at Rory's Steakhouse are far too big for me.", exampleCn: "罗里牛排馆的份量对我来说太大了。" },
+                { word: "reception", meaning: "接待会", exampleEn: "The wedding reception banquet was prepared by the city's top catering company.", exampleCn: "婚宴由该市顶级的餐饮公司承办。" },
+                { word: "recommendation", meaning: "推荐", exampleEn: "The menu is in Japanese! What's your recommendation for a main course?", exampleCn: "菜单是日文的！你推荐什么主菜？" },
+                { word: "cafeteria", meaning: "自助餐厅", exampleEn: "We could either go out for lunch or eat in the staff cafeteria.", exampleCn: "我们可以出去吃午饭，也可以在员工自助餐厅吃。" },
+                { word: "selection", meaning: "选择", exampleEn: "The Red Lantern offers the best selection of Sichuan food in town.", exampleCn: "红灯笼餐厅提供城里最好的四川菜选择。" },
+                { word: "service", meaning: "服务", exampleEn: "Please note that all prices are subject to a 15 percent service charge.", exampleCn: "请注意，所有价格均需加收15%的服务费。" },
+                { word: "main course", meaning: "主菜", exampleEn: "Main courses are served with a choice of seasonal vegetable or salad.", exampleCn: "主菜配有时令蔬菜或沙拉可供选择。" },
+                { word: "accommodate", meaning: "容纳", exampleEn: "After the renovation, the banquet hall will accommodate an additional 200 guests.", exampleCn: "翻新后，宴会厅将可额外容纳200名客人。" },
+                { word: "anticipate", meaning: "期望;预料", exampleEn: "Once the pizza oven is installed, we anticipate that lunchtimes will be busier.", exampleCn: "一旦披萨烤箱安装好，我们预计午餐时间会更忙。" },
+                { word: "attract", meaning: "吸引", exampleEn: "Bernie's coffee and cake is attracting a growing number of loyal customers.", exampleCn: "伯尼的咖啡和蛋糕正在吸引越来越多的忠实顾客。" },
+                { word: "cater", meaning: "迎合", exampleEn: "The Mad Dash caters to office workers looking for good food at affordable prices.", exampleCn: "“疯狂冲刺”餐厅迎合了寻求物美价廉食物的上班族。" },
+                { word: "collect", meaning: "收集", exampleEn: "At the charity dinner, over ten thousand dollars was collected for the orphanage.", exampleCn: "在慈善晚宴上，为孤儿院募集了一万多美元。" },
+                { word: "decrease", meaning: "减少", exampleEn: "When the economy slows down, the number of people dining out decreases.", exampleCn: "当经济放缓时，外出就餐的人数会减少。" },
+                { word: "describe", meaning: "描写", exampleEn: "The food critic described the restaurant as 'a world-class Italian eatery.'", exampleCn: "美食评论家将这家餐厅描述为“世界级的意大利餐馆”。" },
+                { word: "determine", meaning: "决定", exampleEn: "The chefs, the atmosphere, and the service all determine a restaurant's quality.", exampleCn: "厨师、氛围和服务共同决定了一家餐厅的品质。" },
+                { word: "finalize", meaning: "最后定案", exampleEn: "The menu for the banquet was finalized by our catering manager yesterday.", exampleCn: "宴会的菜单昨天由我们的餐饮经理最后敲定。" },
+                { word: "gather", meaning: "聚集", exampleEn: "The guests gathered around the newly-married couple to wish them well.", exampleCn: "客人们聚集在新婚夫妇周围，祝他们一切顺利。" },
+                { word: "host", meaning: "主办", exampleEn: "The board is hosting a farewell dinner for the retiring CEO.", exampleCn: "董事会正在为即将退休的首席执行官举办告别晚宴。" },
+                { word: "mention", meaning: "说到;提到", exampleEn: "The website mentioned the restaurant as a great place to go on weekends.", exampleCn: "该网站提到这家餐厅是周末的好去处。" },
+                { word: "recognize", meaning: "肯定;认得", exampleEn: "Coco is recognized as the top maker of hand-made chocolates in the country.", exampleCn: "可可被公认为该国顶尖的手工巧克力制造商。" },
+                { word: "reserve", meaning: "预订", exampleEn: "I've reserved a table for eight at the industry awards dinner.", exampleCn: "我在行业颁奖晚宴上预订了一张八人桌。" },
+                { word: "tend to", meaning: "倾向于", exampleEn: "Diners tend to follow the restaurant recommendations of friends and colleagues.", exampleCn: "用餐者倾向于听从朋友和同事的餐厅推荐。" },
+                { word: "attract one's attention", meaning: "引起某人注意", exampleEn: "Since its opening one year ago, the Jade Dragon has attracted the attention of the city's Chinese food lovers.", exampleCn: "玉龙餐厅开业一年来，吸引了全城中餐爱好者的目光。" },
+                { word: "go to waste", meaning: "丢弃;浪费", exampleEn: "Thanks to the restaurant's 'green policy', none of the food prepared in the kitchen goes to waste.", exampleCn: "多亏了餐厅的“绿色政策”，厨房里准备的食物没有一样被浪费掉。" },
+                { word: "in addition to", meaning: "除......之外", exampleEn: "In addition to company functions, the restaurant also caters for wedding banquets.", exampleCn: "除了公司活动，该餐厅还承办婚宴。" },
+                { word: "regardless of", meaning: "不管......", exampleEn: "Business at the restaurant is so good that regardless of the day of the week, a reservation is absolutely essential.", exampleCn: "这家餐厅的生意非常好，所以无论星期几，预订都是绝对必要的。" },
+                { word: "soon after", meaning: "不久之后", exampleEn: "Soon after the guests were seated, the waiter arrived to take their food and drink orders.", exampleCn: "客人坐下后不久，服务员就过来为他们点餐和饮料。" }
+            ],
+            "购物消费 Shopping": [
+                { word: "aisle", meaning: "走道", exampleEn: "You will find sporting goods and exercise equipment in aisle number seven.", exampleCn: "您可以在七号走道找到体育用品和健身器材。" },
+                { word: "anniversary sale", meaning: "周年庆", exampleEn: "Oriental Plaza's anniversary sale attracts large crowds of young shoppers.", exampleCn: "东方广场的周年庆促销吸引了大批年轻购物者。" },
+                { word: "bargain", meaning: "特价商品", exampleEn: "During the year-end clearance sales, you can pick up some real bargains.", exampleCn: "在年终清仓大甩卖期间，你可以淘到一些真正的便宜货。" },
+                { word: "boutique", meaning: "精品店", exampleEn: "The boutiques along High Street are particularly appealing to foreign tourists.", exampleCn: "高街上的精品店对外国游客特别有吸引力。" },
+                { word: "checkout", meaning: "付款台", exampleEn: "This checkout is reserved for shoppers buying five items or less.", exampleCn: "这个结账通道专为购买五件或更少商品的顾客保留。" },
+                { word: "consumer behavior", meaning: "消费者行为", exampleEn: "Research into consumer behavior guides superstores on how to display their merchandise.", exampleCn: "对消费者行为的研究指导大型超市如何陈列商品。" },
+                { word: "discount", meaning: "折扣", exampleEn: "Rachel purchases her clothes during the sale season and gets considerable discounts.", exampleCn: "瑞秋在打折季购买衣服，并获得了可观的折扣。" },
+                { word: "hardware", meaning: "五金器具", exampleEn: "Hardware stores are catering for the growing DIY home improvement market.", exampleCn: "五金店正在迎合日益增长的DIY家居装修市场。" },
+                { word: "item", meaning: "项目", exampleEn: "I'm afraid the item you have requested is currently out of stock.", exampleCn: "恐怕您请求的商品目前缺货。" },
+                { word: "online", meaning: "网路上", exampleEn: "Like many young working professionals, Chloe prefers to shop online.", exampleCn: "像许多年轻的职业人士一样，克洛伊更喜欢在网上购物。" },
+                { word: "outlet store", meaning: "畅货中心", exampleEn: "Outlet stores, which sell brand new items at discounted prices, have become increasingly popular.", exampleCn: "以折扣价销售全新商品的畅货中心（奥特莱斯）变得越来越受欢迎。" },
+                { word: "payment", meaning: "付款", exampleEn: "Cash on delivery is the preferred method of payment for goods bought online.", exampleCn: "货到付款是在线购买商品的首选支付方式。" },
+                { word: "retail", meaning: "零售", exampleEn: "The opening of the Tropicana Mall has boosted local retail activity.", exampleCn: "热带商场的开业促进了当地的零售活动。" },
+                { word: "superstore", meaning: "大型商场", exampleEn: "Ample parking and air conditioning make superstores a popular choice with consumers.", exampleCn: "充足的停车位和空调使大型商场成为消费者的热门选择。" },
+                { word: "wholesale", meaning: "批发", exampleEn: "Outlet stores offer a wide range of merchandise at wholesale prices.", exampleCn: "畅货中心以批发价提供各种商品。" },
+                { word: "admire", meaning: "欣赏", exampleEn: "Shoppers visit the department store every Christmas to admire the window display.", exampleCn: "购物者每年圣诞节都会光顾百货公司，欣赏橱窗陈列。" },
+                { word: "assume", meaning: "认为", exampleEn: "Most customers assume that the goods for sale at outlet stores are discounted.", exampleCn: "大多数顾客都认为畅货中心出售的商品是打折的。" },
+                { word: "clarify", meaning: "厘清", exampleEn: "The store manager issued a statement to employees to clarify the store's refund policy.", exampleCn: "商店经理向员工发表声明，以澄清商店的退款政策。" },
+                { word: "emphasize", meaning: "强调", exampleEn: "The saleswoman emphasized the quality and durability of the furniture items.", exampleCn: "女售货员强调了这些家具的质量和耐用性。" },
+                { word: "exceed", meaning: "超过", exampleEn: "We decided not to buy the car because the price exceeded our budget.", exampleCn: "我们决定不买这辆车，因为价格超出了我们的预算。" },
+                { word: "expire", meaning: "到期", exampleEn: "These gift coupons will expire next month. You should use them soon.", exampleCn: "这些礼品券下个月就到期了。你应该尽快使用它们。" },
+                { word: "increase", meaning: "增加", exampleEn: "The anniversary sale increased revenue in our store by 40 percent.", exampleCn: "周年庆促销使我们店的收入增加了40%。" },
+                { word: "lack", meaning: "缺乏", exampleEn: "This product lacks any new features. No wonder it's not selling!", exampleCn: "这个产品没有任何新功能。难怪它卖不出去！" },
+                { word: "link", meaning: "连结", exampleEn: "Credit card spending is directly linked to how optimistic consumers feel.", exampleCn: "信用卡支出与消费者的乐观情绪直接相关。" },
+                { word: "occur", meaning: "发生", exampleEn: "Point-of-sale purchases occur when shoppers are waiting in line at the checkout.", exampleCn: "销售点购买行为发生在购物者在收银台排队等候时。" },
+                { word: "refund", meaning: "退款", exampleEn: "Please keep your receipt, in case you want to refund the item.", exampleCn: "请保留您的收据，以备您想退货时使用。" },
+                { word: "return", meaning: "退还", exampleEn: "Lisa returned the skirt to the boutique because it didn't suit her.", exampleCn: "丽莎把裙子退回了精品店，因为它不适合她。" },
+                { word: "sense", meaning: "感觉", exampleEn: "The salesperson sensed that the customer was still interested in the product.", exampleCn: "销售人员感觉到顾客对该产品仍然感兴趣。" },
+                { word: "serve", meaning: "服务", exampleEn: "Serving his customers well is the key to Peter's high monthly sales.", exampleCn: "为顾客提供优质服务是彼得月度高销售额的关键。" },
+                { word: "wonder", meaning: "纳闷;想知道", exampleEn: "Donna wondered if the same item might be available at the outlet store.", exampleCn: "唐娜想知道同一件商品是否可以在畅货中心买到。" },
+                { word: "be dedicated to", meaning: "致力于", exampleEn: "The clothing brand is dedicated to providing its customers with the latest styles at affordable prices.", exampleCn: "该服装品牌致力于以实惠的价格为顾客提供最新款式。" },
+                { word: "be successful in", meaning: "成功的", exampleEn: "The online retailer has been successful in attracting loyal customers who buy regularly from its site.", exampleCn: "这家在线零售商成功吸引了定期从其网站购物的忠实顾客。" },
+                { word: "in fashion", meaning: "正在流行", exampleEn: "After the bright colors and shorter skirt of last year, a more classical style is back in fashion this year.", exampleCn: "继去年的亮色和短裙之后，今年更古典的风格又开始流行起来。" },
+                { word: "on display", meaning: "陈列;展示", exampleEn: "Every December, thousands of Christmas shoppers visit the department store to browse the new products on display.", exampleCn: "每年十二月，成千上万的圣诞购物者会光顾百货商店，浏览陈列的新产品。" },
+                { word: "take advantage of", meaning: "利用", exampleEn: "By taking advantage of the anniversary sale, Lucy was able to buy some famous brands at much-reduced prices.", exampleCn: "通过利用周年庆促销，露西能够以大大降低的价格购买一些著名品牌。" }
+            ],
+            "人才招聘 Recruitment": [
+                { word: "ability", meaning: "能力", exampleEn: "With his experience and ability, Oscar is the perfect candidate for the job.", exampleCn: "凭借他的经验和能力，奥斯卡是这份工作的完美人选。" },
+                { word: "application", meaning: "申请书", exampleEn: "We have received your application for the position of accounts assistant.", exampleCn: "我们已经收到了您申请会计助理职位的申请书。" },
+                { word: "benefit", meaning: "福利", exampleEn: "Health insurance and a pension plan are the most important employee benefits.", exampleCn: "健康保险和养老金计划是最重要的员工福利。" },
+                { word: "employee", meaning: "雇员", exampleEn: "Several current employees are being considered for promotion to managerial positions.", exampleCn: "几名现任雇员正在被考虑晋升到管理职位。" },
+                { word: "health insurance", meaning: "健保", exampleEn: "All of our staff are covered for accident and health insurance.", exampleCn: "我们所有的员工都享有意外和健康保险。" },
+                { word: "interview", meaning: "面试", exampleEn: "Dressing appropriately for a job interview creates an important first impression.", exampleCn: "在求职面试中穿着得体能创造重要的第一印象。" },
+                { word: "job candidate", meaning: "求职应征者", exampleEn: "Job fairs give companies an opportunity to interview well-qualified job candidates.", exampleCn: "招聘会为公司提供了面试高素质求职者的机会。" },
+                { word: "personnel", meaning: "员工", exampleEn: "Screening personnel to find the right person for the job takes experience.", exampleCn: "筛选员工以找到合适的人选需要经验。" },
+                { word: "qualification", meaning: "资格", exampleEn: "Jason's postgraduate qualifications and language ability were crucial in getting the job.", exampleCn: "杰森的研究生学历和语言能力是获得这份工作的关键。" },
+                { word: "recruitment", meaning: "招聘", exampleEn: "Nowadays, much of the company's recruitment is done via Human Resource websites.", exampleCn: "如今，公司的大部分招聘都是通过人力资源网站进行的。" },
+                { word: "reference", meaning: "推荐函", exampleEn: "The hiring process requires the checking of a job candidate's references.", exampleCn: "招聘过程需要核查求职者的推荐信。" },
+                { word: "resume", meaning: "履历", exampleEn: "I have attached my resume to this e-mail for your reference.", exampleCn: "我已将我的简历附在此电子邮件中供您参考。" },
+                { word: "specialist", meaning: "专家", exampleEn: "We'll need at least two specialists to work in the R&D laboratory.", exampleCn: "我们需要至少两名专家在研发实验室工作。" },
+                { word: "vacancy", meaning: "空缺", exampleEn: "There are currently no vacancies, but we will keep your information on file.", exampleCn: "目前没有职位空缺，但我们会将您的信息存档。" },
+                { word: "work experience", meaning: "工作经验", exampleEn: "Her work experience and qualifications matched the job requirement precisely.", exampleCn: "她的工作经验和资历与工作要求完全匹配。" },
+                { word: "apply", meaning: "申请", exampleEn: "It's not unusual for job seekers to apply for several jobs simultaneously.", exampleCn: "求职者同时申请多份工作的情况并不少见。" },
+                { word: "capitalize", meaning: "从......获利", exampleEn: "Petra was able to capitalize on her past work experience to find a more challenging job.", exampleCn: "佩特拉能够利用她过去的工作经验找到一份更具挑战性的工作。" },
+                { word: "consider", meaning: "考虑", exampleEn: "The board is seriously considering hiring a CEO from outside the industry.", exampleCn: "董事会正在认真考虑从业外聘请一位首席执行官。" },
+                { word: "contact", meaning: "联络", exampleEn: "Thank you for your resume. We'll contact you in the near future.", exampleCn: "感谢您的简历。我们将在不久的将来与您联系。" },
+                { word: "employ", meaning: "雇用", exampleEn: "Dynamic Engineering employs three thousand staff in fifteen countries worldwide.", exampleCn: "动态工程公司在全球十五个国家雇佣了三千名员工。" },
+                { word: "expect", meaning: "期待", exampleEn: "As this is her first job, Polly doesn't expect a high salary.", exampleCn: "由于这是她的第一份工作，波莉不期望高薪。" },
+                { word: "graduate", meaning: "毕业", exampleEn: "The job market is often flooded in June when many students graduate.", exampleCn: "每年六月，当许多学生毕业时，就业市场常常人满为患。" },
+                { word: "hire", meaning: "雇用", exampleEn: "As business is improving, we need to hire new factory employees.", exampleCn: "随着业务的好转，我们需要招聘新的工厂员工。" },
+                { word: "inform", meaning: "告知", exampleEn: "I'm calling to inform you that your job application has been successful.", exampleCn: "我打电话是想通知您，您的工作申请已成功。" },
+                { word: "inquire", meaning: "询问", exampleEn: "To inquire about the vacancy, please visit the company's HR website.", exampleCn: "要查询该职位空缺，请访问公司的人力资源网站。" },
+                { word: "recruit", meaning: "招募", exampleEn: "We hired a consultant to help us recruit two financial specialists.", exampleCn: "我们聘请了一位顾问来帮助我们招聘两名财务专家。" },
+                { word: "request", meaning: "要求", exampleEn: "The company requests that all new employees undergo workplace safety training.", exampleCn: "公司要求所有新员工接受工作场所安全培训。" },
+                { word: "submit", meaning: "提交", exampleEn: "Please submit a cover letter and current resume with your job application.", exampleCn: "请随工作申请一并提交求职信和最新简历。" },
+                { word: "transfer", meaning: "调动", exampleEn: "Zach was transferred to Osaka based on his Japanese language ability.", exampleCn: "扎克因其日语能力被调往大阪。" },
+                { word: "volunteer", meaning: "自愿", exampleEn: "Many employees volunteered to help prepare for the staff family picnic.", exampleCn: "许多员工自愿帮助筹备员工家庭野餐。" },
+                { word: "A as well as B", meaning: "A以及B", exampleEn: "Employees who successfully pass the 3-month trial period are eligible to apply for health as well as labor insurance.", exampleCn: "成功通过3个月试用期的员工有资格申请健康保险和劳动保险。" },
+                { word: "be eligible to", meaning: "有资格", exampleEn: "You will be eligible to join the company pension plan once you have worked here for 12 months.", exampleCn: "在您在这里工作满12个月后，您将有资格加入公司的养老金计划。" },
+                { word: "be invited for", meaning: "被邀请去", exampleEn: "Betty has been invited for a final interview, which means there are only three candidates in the running for the job.", exampleCn: "贝蒂被邀请参加最后一轮面试，这意味着只有三位候选人在竞争这个职位。" },
+                { word: "choose between", meaning: "在......之间选择", exampleEn: "With such well-qualified candidates for the job, it is extremely difficult to choose between them.", exampleCn: "面对如此高素质的职位候选人，要在他们之间做出选择是极其困难的。" },
+                { word: "intend to", meaning: "打算", exampleEn: "The company intends to hire two engineers to work on the design of the new solar-powered motor.", exampleCn: "该公司打算聘请两名工程师来设计新型太阳能马达。" }
+            ],
+            "教育培训 Training": [
+                { word: "certificate", meaning: "证书", exampleEn: "A certificate will be awarded upon successful completion of the training program.", exampleCn: "成功完成培训项目后将颁发证书。" },
+                { word: "guidance", meaning: "指导", exampleEn: "The trainer remained on site to give guidance to the new trainees.", exampleCn: "培训师留在现场为新学员提供指导。" },
+                { word: "instruction", meaning: "指示说明", exampleEn: "Instructions on using the new machine can be found in the manual.", exampleCn: "关于如何使用新机器的说明可以在手册中找到。" },
+                { word: "license", meaning: "执照", exampleEn: "Following almost 6 months of training, Joyce finally got her pilot's license.", exampleCn: "经过近6个月的培训，乔伊斯终于拿到了她的飞行员执照。" },
+                { word: "lifelong learning", meaning: "终身学习", exampleEn: "Our company encourages lifelong learning and offers a wide variety of courses.", exampleCn: "我们公司鼓励终身学习，并提供各种各样的课程。" },
+                { word: "mentor", meaning: "良师;导师", exampleEn: "Since retiring, Danny has worked as a mentor for several management trainees.", exampleCn: "退休后，丹尼一直担任几位管理培训生的导师。" },
+                { word: "motivation", meaning: "动机", exampleEn: "Penny's main motivation for enrolling at college is to strengthen her marketing skills.", exampleCn: "佩妮上大学的主要动机是加强她的市场营销技能。" },
+                { word: "on-the-job training", meaning: "在职培训", exampleEn: "The popular course combines classroom-based theory with on-the-job training.", exampleCn: "这门受欢迎的课程将课堂理论与在职培训相结合。" },
+                { word: "participant", meaning: "参与者", exampleEn: "Participants in the workshop are invited to tour the factory next Wednesday.", exampleCn: "工作坊的参与者被邀请在下周三参观工厂。" },
+                { word: "seminar", meaning: "研讨会", exampleEn: "The seminar is scheduled for Saturday afternoon in the training room.", exampleCn: "研讨会定于周六下午在培训室举行。" },
+                { word: "skill", meaning: "技术", exampleEn: "Roger's computer skills improved enormously after the workshop.", exampleCn: "参加工作坊后，罗杰的计算机技能大幅提高。" },
+                { word: "trainer", meaning: "训练人员", exampleEn: "The trainer has more than 15 years of experience delivering courses.", exampleCn: "这位培训师有超过15年的授课经验。" },
+                { word: "training session", meaning: "培训课程", exampleEn: "This afternoon's training session will be held in Meeting Room 3.", exampleCn: "今天下午的培训课程将在3号会议室举行。" },
+                { word: "update", meaning: "更新", exampleEn: "The purpose of the workshop is to help update your knowledge about tax policy.", exampleCn: "本次工作坊的目的是帮助您更新关于税收政策的知识。" },
+                { word: "upgrade", meaning: "提升", exampleEn: "To upgrade his furniture design skills, Boris travels to Sweden every year.", exampleCn: "为了提升他的家具设计技能，鲍里斯每年都会去瑞典旅行。" },
+                { word: "customize", meaning: "订做", exampleEn: "All training programs are customized to meet our client's needs.", exampleCn: "所有的培训项目都是根据我们客户的需求定制的。" },
+                { word: "complete", meaning: "完成", exampleEn: "After completing the course, trainees will take the license exam.", exampleCn: "完成课程后，学员将参加执照考试。" },
+                { word: "cover", meaning: "涵盖", exampleEn: "The seminar will cover theoretical knowledge and on-the-job training.", exampleCn: "研讨会将涵盖理论知识和在职培训。" },
+                { word: "enroll", meaning: "注册", exampleEn: "To enroll in the training program, please complete the online application form.", exampleCn: "要注册参加培训项目，请填写在线申请表。" },
+                { word: "equip", meaning: "配备", exampleEn: "Our training center is equipped with state-of-the-art equipment and comfortable workstations.", exampleCn: "我们的培训中心配备了最先进的设备和舒适的工作站。" },
+                { word: "impact", meaning: "冲击", exampleEn: "Your ability to learn new skills impacts your chances of getting promoted.", exampleCn: "你学习新技能的能力会影响你获得晋升的机会。" },
+                { word: "incorporate", meaning: "纳入", exampleEn: "The course incorporates the latest management theory as well as case studies.", exampleCn: "该课程包含了最新的管理理论以及案例研究。" },
+                { word: "instruct", meaning: "指示;指导", exampleEn: "The trainer instructed the trainee flight attendants on how to manage emergencies.", exampleCn: "培训师指导见习空乘人员如何处理紧急情况。" },
+                { word: "practice", meaning: "练习", exampleEn: "Learning theory means little if you don't practice what you've learned.", exampleCn: "如果你不实践所学，理论学习就没什么意义。" },
+                { word: "recycle", meaning: "回收利用", exampleEn: "The workshop is designed to help large companies effectively recycle their waste.", exampleCn: "该工作坊旨在帮助大公司有效回收其废物。" },
+                { word: "repeat", meaning: "重复", exampleEn: "If you miss this course, don't worry! It'll be repeated in February.", exampleCn: "如果你错过了这门课，别担心！它会在二月份重开。" },
+                { word: "resolve", meaning: "解决", exampleEn: "Everyone agreed the best way to resolve the quality issues was more training.", exampleCn: "大家都认为解决质量问题的最好方法是进行更多培训。" },
+                { word: "utilize", meaning: "利用", exampleEn: "If we don't utilize our training budget, it'll be cut next year.", exampleCn: "如果我们不利用我们的培训预算，明年它就会被削减。" },
+                { word: "warn", meaning: "警告", exampleEn: "The trainer warned the workshop attendees of the dangers of fatigue.", exampleCn: "培训师警告工作坊参与者注意疲劳的危险。" },
+                { word: "waste", meaning: "浪费", exampleEn: "Money spent on improving the skill levels of employees is never wasted.", exampleCn: "花在提高员工技能水平上的钱永远不会白费。" },
+                { word: "be filled to capacity", meaning: "客满", exampleEn: "This month's training workshop is already filled to capacity, so you will need to register for next month's.", exampleCn: "本月的培训工作坊已经满员，所以您需要报名下个月的。" },
+                { word: "be open to", meaning: "对......开放", exampleEn: "The workshop is open to anyone who is interested in improving their 3-D design skills.", exampleCn: "该工作坊对任何有兴趣提高其3D设计技能的人开放。" },
+                { word: "get involved in", meaning: "参与;涉及", exampleEn: "James got involved in staff training based on his own 20 years of experience as a senior bank manager.", exampleCn: "詹姆斯凭借自己作为高级银行经理20年的经验参与了员工培训。" },
+                { word: "in association with", meaning: "与......合作", exampleEn: "Next month's training session on fire safety will be held in association with the local fire department.", exampleCn: "下个月的消防安全培训将与当地消防部门合作举办。" },
+                { word: "take place over", meaning: "为期", exampleEn: "The tax accountant's training workshop will take place over a month, with classes held every Saturday afternoon.", exampleCn: "税务会计师的培训工作坊将为期一个月，每周六下午上课。" }
+            ],
+            "工作表现 Work Performance": [
+                { word: "achievement", meaning: "成就", exampleEn: "Alex's achievements in the field of biotechnology are well-known.", exampleCn: "亚历克斯在生物技术领域的成就众所周知。" },
+                { word: "appreciation", meaning: "感谢", exampleEn: "To show her appreciation for their effort, Alice took her staff to dinner.", exampleCn: "为了表示对员工努力的感谢，爱丽丝带他们去吃了晚餐。" },
+                { word: "award", meaning: "奖励", exampleEn: "The award was given to Tony for his outstanding contribution to company sales.", exampleCn: "这个奖项是授予托尼的，以表彰他对公司销售的杰出贡献。" },
+                { word: "awards ceremony", meaning: "颁奖典礼", exampleEn: "The awards ceremony was held in the Fenton Hotel's main ballroom.", exampleCn: "颁奖典礼在芬顿酒店的主宴会厅举行。" },
+                { word: "company culture", meaning: "公司文化", exampleEn: "Company culture is a major reason Vision Quest attracts so many high-quality graduates.", exampleCn: "公司文化是“远见探索”公司吸引众多高素质毕业生的一个主要原因。" },
+                { word: "contribution", meaning: "贡献", exampleEn: "Lily's contribution to the company over the last 30 years was formally recognized.", exampleCn: "莉莉在过去30年里对公司的贡献得到了正式认可。" },
+                { word: "dedication", meaning: "奉献", exampleEn: "For her dedication to customer service, Jenny was voted 'Employee of the Month'.", exampleCn: "由于对客户服务的奉献，珍妮被评为“月度最佳员工”。" },
+                { word: "eligible", meaning: "有资格的", exampleEn: "All full-time employees are eligible to join the company pension plan.", exampleCn: "所有全职员工都有资格加入公司的养老金计划。" },
+                { word: "incentive", meaning: "激励", exampleEn: "Apart from their base salary, there is an incentive program for the sales team.", exampleCn: "除了基本工资外，销售团队还有一个激励计划。" },
+                { word: "loyalty", meaning: "忠诚", exampleEn: "Betty's loyalty to the firm was recognized at the awards ceremony.", exampleCn: "贝蒂对公司的忠诚在颁奖典礼上得到了认可。" },
+                { word: "pension", meaning: "退休金", exampleEn: "Pension plan payments are automatically deducted from your salary each month.", exampleCn: "养老金计划的缴款每月会自动从你的工资中扣除。" },
+                { word: "promotion", meaning: "升迁", exampleEn: "Barry's hard work and contribution resulted in his promotion to assistant manager.", exampleCn: "巴里的辛勤工作和贡献使他晋升为助理经理。" },
+                { word: "raise", meaning: "增加;升高", exampleEn: "Following her annual performance evaluation, Shirley was given a pay raise.", exampleCn: "在年度绩效评估后，雪莉获得了加薪。" },
+                { word: "recognition", meaning: "赏识", exampleEn: "Oscar's contribution to the industry received recognition by the Minister of Trade.", exampleCn: "奥斯卡对该行业的贡献得到了贸易部长的赏识。" },
+                { word: "retirement", meaning: "退休", exampleEn: "Although Max enjoys his job, he's still looking forward to his retirement.", exampleCn: "尽管马克斯喜欢他的工作，但他仍然期待着退休。" },
+                { word: "authorize", meaning: "给予权限", exampleEn: "The manager authorized all section leaders to select their top two employees.", exampleCn: "经理授权所有部门负责人挑选他们最优秀的两名员工。" },
+                { word: "celebrate", meaning: "庆祝", exampleEn: "A party has been organized to celebrate the company's 10-year anniversary.", exampleCn: "为了庆祝公司成立10周年，组织了一场派对。" },
+                { word: "compliment", meaning: "称赞", exampleEn: "Her supervisor complimented Martha on her excellent customer service skills.", exampleCn: "她的主管称赞了玛莎卓越的客户服务技巧。" },
+                { word: "donate", meaning: "捐赠", exampleEn: "Our entire staff donated ten percent of their salary to victims of the earthquakes.", exampleCn: "我们全体员工将工资的百分之十捐给了地震灾民。" },
+                { word: "earn", meaning: "赚取", exampleEn: "In order to earn more money, Patrick works part-time on weekends.", exampleCn: "为了赚更多的钱，帕特里克在周末做兼职。" },
+                { word: "enhance", meaning: "增进", exampleEn: "Dianne is studying an MBA in order to enhance her chance of promotion.", exampleCn: "黛安正在攻读MBA，以增加她获得晋升的机会。" },
+                { word: "evaluate", meaning: "评定;估价", exampleEn: "Every six months, the Human Resource department evaluates all staff performance.", exampleCn: "人力资源部每六个月对所有员工的绩效进行评估。" },
+                { word: "fire", meaning: "解雇", exampleEn: "Jerry risks being fired if he continues to be late for work.", exampleCn: "如果杰瑞继续上班迟到，他就有被解雇的风险。" },
+                { word: "gain", meaning: "得到", exampleEn: "Steven gained the recognition of his coworkers for his willingness to help.", exampleCn: "史蒂文因乐于助人而赢得了同事们的认可。" },
+                { word: "honor", meaning: "尊敬", exampleEn: "The retiring CEO will be honored at a formal dinner next Tuesday.", exampleCn: "即将退休的首席执行官将在下周二的正式晚宴上受到表彰。" },
+                { word: "judge", meaning: "评判", exampleEn: "Work performance is judged based on a number of different criteria.", exampleCn: "工作表现是根据许多不同的标准来评判的。" },
+                { word: "receive", meaning: "得到", exampleEn: "The entire sales team received a bonus after reaching its sales target.", exampleCn: "整个销售团队在达到销售目标后都获得了奖金。" },
+                { word: "retire", meaning: "退休", exampleEn: "After Lucy retires, she plans to move to a small seaside town.", exampleCn: "露西退休后，她计划搬到一个海滨小镇。" },
+                { word: "reveal", meaning: "揭露", exampleEn: "In an interview, the CEO revealed that the new product would be in stores before Christmas.", exampleCn: "在一次采访中，首席执行官透露新产品将在圣诞节前上市。" },
+                { word: "resign", meaning: "辞去;辞职", exampleEn: "Unfortunately, David is resigning from his position due to poor health.", exampleCn: "不幸的是，大卫因健康不佳将辞去他的职位。" },
+                { word: "be critical of", meaning: "对......加以批评", exampleEn: "The supervisor was critical of the assembly line operator's inability to follow safety guidelines.", exampleCn: "主管对流水线操作员未能遵守安全准则提出了批评。" },
+                { word: "deduct A from B", meaning: "从B扣除A", exampleEn: "The company deducts pension payments from employee salaries every month.", exampleCn: "公司每月从员工工资中扣除养老金缴款。" },
+                { word: "earn the respect of somebody", meaning: "获得某人的尊敬", exampleEn: "Shirley's expertise and loyalty to the company earned the respect of her manager as well as her colleagues.", exampleCn: "雪莉的专业知识和对公司的忠诚赢得了她的经理以及同事们的尊敬。" },
+                { word: "on behalf of", meaning: "代替;代表", exampleEn: "Lily accepted the award on behalf of her firm at the annual Industry Awards ceremony.", exampleCn: "莉莉在年度行业颁奖典礼上代表她的公司领奖。" },
+                { word: "qualify for", meaning: "有......资格", exampleEn: "Our employees qualify for an annual pay raise if they receive a positive evaluation from their department supervisor.", exampleCn: "如果我们的员工得到部门主管的积极评价，他们就有资格获得年度加薪。" }
+            ],
+            "工作沟通 Office Communication": [
+                { word: "appreciation", meaning: "感谢", exampleEn: "We received a certificate of appreciation for our support of the children's charity.", exampleCn: "我们因支持儿童慈善事业而获得了一份感谢状。" },
+                { word: "authorization", meaning: "授权", exampleEn: "Do not send press releases to the media without the CEO's authorization.", exampleCn: "未经首席执行官授权，不得向媒体发送新闻稿。" },
+                { word: "bulletin board", meaning: "布告栏", exampleEn: "A notice regarding the company outing is posted on the bulletin board.", exampleCn: "关于公司郊游的通知张贴在布告栏上。" },
+                { word: "communication", meaning: "交流", exampleEn: "Internal communication is done mainly through e-mail and our company intranet.", exampleCn: "内部沟通主要通过电子邮件和我们公司的内网进行。" },
+                { word: "correspondence", meaning: "信件", exampleEn: "Please address all correspondence to the manager of the Customer Service Center.", exampleCn: "请将所有信件寄给客户服务中心经理。" },
+                { word: "urgent", meaning: "紧急的", exampleEn: "Documents marked 'urgent' are picked up by the courier at 4:30 P.M.", exampleCn: "标有“紧急”字样的文件由快递员在下午4:30取走。" },
+                { word: "document", meaning: "文件", exampleEn: "Following the final proofreading, this document needs to be forwarded to our lawyers.", exampleCn: "经过最后校对后，这份文件需要转交给我们的律师。" },
+                { word: "duplicate", meaning: "复本", exampleEn: "Please sign the contract and keep a duplicate copy for your records.", exampleCn: "请签署合同并保留一份复本以供存档。" },
+                { word: "express", meaning: "快捷、表达", exampleEn: "If we use express mail, the catalogs will be there by Friday.", exampleCn: "如果我们用快递，目录册周五前就能到。" },
+                { word: "layout", meaning: "版面设计", exampleEn: "The layout and color scheme of the new brochure is really appealing.", exampleCn: "新宣传册的版面设计和配色方案非常吸引人。" },
+                { word: "letterhead", meaning: "信笺", exampleEn: "The design of the new letterhead better reflects the company's future direction.", exampleCn: "新信笺的设计更好地反映了公司未来的发展方向。" },
+                { word: "memorandum", meaning: "备忘录", exampleEn: "The memorandum regarding the factory audit must be distributed to everyone concerned.", exampleCn: "关于工厂审计的备忘录必须分发给所有相关人员。" },
+                { word: "message", meaning: "讯息", exampleEn: "In her phone message, the client said she needed to postpone her visit.", exampleCn: "客户在她的电话留言中说她需要推迟她的访问。" },
+                { word: "network", meaning: "网路", exampleEn: "My laptop is working fine, so perhaps the computer network is down.", exampleCn: "我的笔记本电脑工作正常，所以可能是计算机网络出问题了。" },
+                { word: "proofread", meaning: "校对", exampleEn: "This letter to our clients must be flawless. Please proofread it again.", exampleCn: "这封给客户的信必须完美无瑕。请再校对一遍。" },
+                { word: "weigh", meaning: "称重", exampleEn: "The clerk in the mail room will help you weigh your package.", exampleCn: "收发室的职员会帮你称包裹的重量。" },
+                { word: "adopt", meaning: "采用", exampleEn: "The company adopted new measures to ensure the security of its e-mails.", exampleCn: "公司采取了新措施来确保其电子邮件的安全。" },
+                { word: "arrange", meaning: "安排", exampleEn: "Please arrange for a courier to pick up the contract before 5:00 P.M.", exampleCn: "请安排快递员在下午5点前取走合同。" },
+                { word: "attempt", meaning: "试图", exampleEn: "Doris attempted to e-mail the file to the graphic designer, but it was too large.", exampleCn: "多丽丝试图通过电子邮件将文件发送给平面设计师，但文件太大了。" },
+                { word: "concentrate", meaning: "专心", exampleEn: "We must concentrate on mailing out our new Christmas catalogs this week.", exampleCn: "我们本周必须专心邮寄我们新的圣诞目录。" },
+                { word: "delete", meaning: "删除", exampleEn: "Peter deleted the spreadsheet by accident, but fortunately, he recovered it.", exampleCn: "彼得不小心删除了电子表格，但幸运的是，他恢复了它。" },
+                { word: "examine", meaning: "检查", exampleEn: "The incoming parcels were examined by Customs at the international airport.", exampleCn: "进港包裹在国际机场由海关检查。" },
+                { word: "fold", meaning: "折叠", exampleEn: "Fold the brochure in this manner, and it will fit into the envelope.", exampleCn: "以这种方式折叠宣传册，它就能装进信封了。" },
+                { word: "generate", meaning: "产生", exampleEn: "Our direct mail campaign generated a lot of visits to our website.", exampleCn: "我们的直邮活动为我们的网站带来了大量访问。" },
+                { word: "impress", meaning: "给予深刻印象", exampleEn: "The sales manager was deeply impressed by the letter from the customer.", exampleCn: "销售经理对顾客的来信印象深刻。" },
+                { word: "modify", meaning: "修订", exampleEn: "The company has modified its logo to make it look more contemporary.", exampleCn: "公司修改了其标志，使其看起来更具现代感。" },
+                { word: "notify", meaning: "通知", exampleEn: "Staff members are usually notified of schedule and shift changes via e-mail.", exampleCn: "员工通常会通过电子邮件收到日程和班次变动的通知。" },
+                { word: "observe", meaning: "遵守;观察", exampleEn: "Please observe the fire safety procedures posted on the main bulletin board.", exampleCn: "请遵守张贴在主公告栏上的消防安全程序。" },
+                { word: "revise", meaning: "修订", exampleEn: "The letter to our investors has been revised and proofread several times.", exampleCn: "给投资者的信已经修改和校对了好几次。" },
+                { word: "screen", meaning: "筛选", exampleEn: "Incoming mail is screened carefully before delivery to the relevant department.", exampleCn: "收到的邮件在分发到相关部门之前都经过仔细筛选。" },
+                { word: "be hesitant to", meaning: "对于......犹豫不决", exampleEn: "The trainee was hesitant to send the letter to the client without her supervisor's approval.", exampleCn: "未经主管批准，实习生对是否给客户寄信犹豫不决。" },
+                { word: "have very little time", meaning: "几乎没时间", exampleEn: "We need to work quickly as we have very little time left to complete the application process.", exampleCn: "我们需要迅速行动，因为我们完成申请过程的时间所剩无几。" },
+                { word: "jump to conclusions", meaning: "轻易下结论;贸然断定", exampleEn: "I wouldn't jump to any conclusions based on that e-mail alone. Call them to clarify the situation.", exampleCn: "我不会仅凭那封电子邮件就下任何结论。打电话给他们澄清情况。" },
+                { word: "come up with", meaning: "想出/提供(概念、解决方案)", exampleEn: "The old method is obviously not working; we need to come up with a different approach.", exampleCn: "旧方法显然行不通；我们需要想出一种不同的方法。" },
+                { word: "elaborate on", meaning: "详细说明", exampleEn: "The engineer was unhappy because the report was unable to elaborate on the root cause of the problem.", exampleCn: "工程师很不高兴，因为报告未能详细说明问题的根本原因。" }
+            ],
+            "市场销售 Marketing and Sales": [
+                { word: "advertising campaign", meaning: "广告活动", exampleEn: "Promoting the new brand of clothing requires an extensive advertising campaign.", exampleCn: "推广新服装品牌需要广泛的广告活动。" },
+                { word: "brand", meaning: "品牌", exampleEn: "The benefit of a strong brand is that consumers will pay a higher price for it.", exampleCn: "强势品牌的好处是消费者愿意为其支付更高的价格。" },
+                { word: "competition", meaning: "竞争者", exampleEn: "Our competition is dropping their prices. We have no choice but to do the same.", exampleCn: "我们的竞争对手正在降价。我们别无选择，只能也这样做。" },
+                { word: "consumer", meaning: "消费者", exampleEn: "Thanks to the Internet, consumers have much more information available to them.", exampleCn: "得益于互联网，消费者可以获得更多的信息。" },
+                { word: "customer", meaning: "顾客", exampleEn: "Roma has a reputation for great Italian food and outstanding customer service.", exampleCn: "罗马餐厅以其美味的意大利食物和出色的客户服务而闻名。" },
+                { word: "demand", meaning: "需求", exampleEn: "The advertising campaign has increased demand for the product by thirty percent.", exampleCn: "广告活动使该产品的需求增加了百分之三十。" },
+                { word: "distributor", meaning: "代理商", exampleEn: "To expand in the Middle East, Novex is looking for a distributor in Dubai.", exampleCn: "为了在中东扩张，Novex正在迪拜寻找代理商。" },
+                { word: "market research", meaning: "市场调查", exampleEn: "Market research shows that consumers still prefer more expensive Japanese products.", exampleCn: "市场调查显示，消费者仍然偏爱更昂贵的日本产品。" },
+                { word: "marketing", meaning: "市场营销", exampleEn: "The new marketing manager has ten years of experience in the banking industry.", exampleCn: "新任市场营销经理在银行业有十年的经验。" },
+                { word: "merchandise", meaning: "货品", exampleEn: "Convenience stores display their merchandise based on consumer behavior.", exampleCn: "便利店根据消费者行为来陈列他们的商品。" },
+                { word: "presentation", meaning: "简报;呈现", exampleEn: "Lee's presentation on branding helped us rethink our own marketing strategy.", exampleCn: "李关于品牌建设的简报帮助我们重新思考了自己的营销策略。" },
+                { word: "press release", meaning: "新闻稿", exampleEn: "Our marketing department faxed the press release to local newspapers last Friday.", exampleCn: "我们的市场部上周五向当地报纸传真了新闻稿。" },
+                { word: "promotion", meaning: "推广", exampleEn: "Blue Star will run promotions and demonstrations in twenty local supermarkets.", exampleCn: "蓝星公司将在二十家本地超市进行推广和演示活动。" },
+                { word: "strategy", meaning: "策略", exampleEn: "Rambla's marketing strategy is to offer quality leather goods at affordable prices.", exampleCn: "Rambla的营销策略是以实惠的价格提供优质皮具。" },
+                { word: "survey", meaning: "问卷调查", exampleEn: "A recent survey of students shows that they spend less time watching television.", exampleCn: "最近一项对学生的问卷调查显示，他们看电视的时间减少了。" },
+                { word: "advertise", meaning: "打广告", exampleEn: "The restaurant only advertises on social media and consumer websites.", exampleCn: "这家餐厅只在社交媒体和消费者网站上做广告。" },
+                { word: "affect", meaning: "影响", exampleEn: "The economic situation affected sales in local and overseas markets.", exampleCn: "经济形势影响了本地和海外市场的销售。" },
+                { word: "claim", meaning: "声称", exampleEn: "The saleswoman claimed that the new model was superior to the old one.", exampleCn: "女售货员声称新型号优于旧型号。" },
+                { word: "compile", meaning: "收集(资料等)", exampleEn: "The data from the customer survey was compiled and sent to Head Office.", exampleCn: "来自客户调查的数据被汇编并发送到总公司。" },
+                { word: "ensure", meaning: "保证", exampleEn: "The sales warranty ensures that the product is guaranteed for three years.", exampleCn: "销售保修保证产品有三年的保修期。" },
+                { word: "introduce", meaning: "引进", exampleEn: "Tezla will introduce a new range of smartphones before Christmas.", exampleCn: "Tezla将在圣诞节前推出一系列新的智能手机。" },
+                { word: "involve", meaning: "牵涉", exampleEn: "The promotion involves our sales and marketing people as well as our distributors.", exampleCn: "这次促销活动涉及我们的销售和市场人员以及我们的分销商。" },
+                { word: "launch", meaning: "上市;推出", exampleEn: "Travelstar recently launched a range of travel products for the independent traveler.", exampleCn: "Travelstar最近为独立旅行者推出了一系列旅行产品。" },
+                { word: "participate", meaning: "参与", exampleEn: "Our supervisor has recommended that we participate in next year's electronics show.", exampleCn: "我们的主管建议我们参加明年的电子展。" },
+                { word: "persuade", meaning: "说服", exampleEn: "Persuading clients to buy your product by criticizing the competition doesn't work.", exampleCn: "通过批评竞争对手来说服客户购买你的产品是行不通的。" },
+                { word: "postpone", meaning: "延期", exampleEn: "We have postponed the sales presentation because our manager is out of town.", exampleCn: "由于我们的经理出城了，我们推迟了销售简报。" },
+                { word: "release", meaning: "发表", exampleEn: "We must release our new line of stationery before students go back to school.", exampleCn: "我们必须在学生返校前发布我们的新文具系列。" },
+                { word: "remind", meaning: "提醒", exampleEn: "Please remind the customer that our after-sales service is free of charge.", exampleCn: "请提醒顾客我们的售后服务是免费的。" },
+                { word: "respond", meaning: "回答", exampleEn: "Only 7 percent of survey participants did not respond by the deadline.", exampleCn: "只有7%的调查参与者没有在截止日期前作出回应。" },
+                { word: "support", meaning: "支持", exampleEn: "The launch of the new cosmetic line will be supported with a marketing campaign.", exampleCn: "新化妆品系列的推出将得到营销活动的支持。" },
+                { word: "be scheduled to", meaning: "预订", exampleEn: "The results of our market survey are scheduled to be published at the end of the month.", exampleCn: "我们的市场调查结果定于本月底公布。" },
+                { word: "in an effort to", meaning: "为......而努力", exampleEn: "The sales manager has decided to extend the promotion for another two weeks in an effort to attract more customers.", exampleCn: "为了吸引更多顾客，销售经理决定将促销活动再延长两周。" },
+                { word: "issue a statement", meaning: "发表声明", exampleEn: "The marketing department will issue a statement to the media regarding the product launch later this week.", exampleCn: "市场部将在本周晚些时候就产品发布向媒体发表声明。" },
+                { word: "make a good impression on somebody", meaning: "带给某人好印象", exampleEn: "We are confident that the new uniforms will help our sales representatives make a good first impression on our clients.", exampleCn: "我们相信新制服将帮助我们的销售代表给客户留下良好的第一印象。" },
+                { word: "resolve a problem", meaning: "解决问题", exampleEn: "The distributor could not give an estimate on how long it would take to resolve the shipping problem.", exampleCn: "分销商无法估计解决运输问题需要多长时间。" }
+            ],
+            "法律合约 Law and Contracts": [
+                { word: "abide by", meaning: "遵照", exampleEn: "By signing, you agree to abide by the terms and conditions of the contract.", exampleCn: "一旦签署，即表示您同意遵守合同的条款和条件。" },
+                { word: "agreement", meaning: "协议", exampleEn: "Following extensive negotiations, the two parties finally reached an agreement.", exampleCn: "经过广泛的谈判，双方最终达成了协议。" },
+                { word: "assurance", meaning: "保证", exampleEn: "You have our assurance that the catalogs will be ready before the conference.", exampleCn: "我们向您保证，目录册将在会议前准备好。" },
+                { word: "cancellation", meaning: "取消", exampleEn: "Failure to meet the conditions will result in the cancellation of the contract.", exampleCn: "未能满足条件将导致合同被取消。" },
+                { word: "conditions", meaning: "条款", exampleEn: "One of the contract conditions is that the firms share the marketing expenses.", exampleCn: "合同条款之一是公司双方分摊营销费用。" },
+                { word: "contract", meaning: "合约", exampleEn: "Our lawyer will draw up the contract and send it to you by courier.", exampleCn: "我们的律师将起草合同并通过快递寄给您。" },
+                { word: "court case", meaning: "(法律)案件", exampleEn: "The safety issue was so serious that it resulted in an expensive court case.", exampleCn: "这个安全问题非常严重，导致了一场昂贵的法律诉讼。" },
+                { word: "legal", meaning: "法律的", exampleEn: "This is not only a moral responsibility; it is also a legal one.", exampleCn: "这不仅是道义上的责任，也是法律上的责任。" },
+                { word: "negotiation", meaning: "谈判;协商", exampleEn: "The negotiation continued late into the night before an agreement was reached.", exampleCn: "谈判一直持续到深夜才达成协议。" },
+                { word: "obligation", meaning: "义务", exampleEn: "The warranty means the company has an obligation to replace any faulty parts.", exampleCn: "保修意味着公司有义务更换任何有故障的零件。" },
+                { word: "party", meaning: "当事人;一方", exampleEn: "The judge ruled that the guilty party needed to pay compensation.", exampleCn: "法官裁定过错方需要支付赔偿金。" },
+                { word: "regulation", meaning: "法规", exampleEn: "Fire regulations require that the stairway must be clear at all times.", exampleCn: "消防法规要求楼梯必须随时保持畅通。" },
+                { word: "signature", meaning: "签名", exampleEn: "Please put your signature on the bottom of every page of the contract.", exampleCn: "请在合同的每一页底部签名。" },
+                { word: "terms", meaning: "条款", exampleEn: "The two parties finally agreed to the terms and conditions of the contract.", exampleCn: "双方最终同意了合同的条款和条件。" },
+                { word: "warranty", meaning: "保证书", exampleEn: "This product comes with a three-year comprehensive warranty.", exampleCn: "该产品附带三年全面保修。" },
+                { word: "achieve", meaning: "达成", exampleEn: "To achieve our financial goals, we'll need to negotiate better terms.", exampleCn: "为了实现我们的财务目标，我们需要谈判更好的条款。" },
+                { word: "acquire", meaning: "取得", exampleEn: "GoWest acquired a local trucking company to increase its distribution network.", exampleCn: "GoWest收购了一家当地的货运公司以扩大其分销网络。" },
+                { word: "bid", meaning: "投标;出价", exampleEn: "Bidding for government contracts helped the company survive the financial crisis.", exampleCn: "竞标政府合同帮助公司度过了金融危机。" },
+                { word: "block", meaning: "挡住", exampleEn: "The legal team blocked the company's bid to acquire the shipping firm.", exampleCn: "法律团队阻止了该公司收购航运公司的投标。" },
+                { word: "comply", meaning: "遵守", exampleEn: "As a restaurant operator it is vital that you comply with health regulations.", exampleCn: "作为餐厅经营者，遵守卫生法规至关重要。" },
+                { word: "connect", meaning: "连接", exampleEn: "The technology we acquired allows users to connect to the Internet faster.", exampleCn: "我们获得的技术允许用户更快地连接到互联网。" },
+                { word: "force", meaning: "迫使", exampleEn: "The company was forced by law to remove their product from the shelves.", exampleCn: "该公司被法律强制要求将其产品下架。" },
+                { word: "guarantee", meaning: "保证", exampleEn: "The contract guarantees full payment on or before December 31st.", exampleCn: "合同保证在12月31日或之前全额付款。" },
+                { word: "imply", meaning: "暗示", exampleEn: "The lawyer implied that breaking the contract would result in a court case.", exampleCn: "律师暗示违反合同将导致法庭诉讼。" },
+                { word: "merge", meaning: "合并", exampleEn: "Dantex and Garco merged to become one of the country's largest textile firms.", exampleCn: "Dantex和Garco合并成为该国最大的纺织公司之一。" },
+                { word: "prohibit", meaning: "禁止", exampleEn: "Health regulations prohibit smoking in restaurants, bars and public places.", exampleCn: "卫生法规禁止在餐厅、酒吧和公共场所吸烟。" },
+                { word: "promise", meaning: "承诺", exampleEn: "Lily promised her boss that the new lease would be ready by Friday.", exampleCn: "莉莉向老板保证新的租约将在周五前准备好。" },
+                { word: "reimburse", meaning: "退款;偿还", exampleEn: "Your contract states that you will be fully reimbursed for any traveling expenses.", exampleCn: "您的合同规定，您的任何差旅费用都将得到全额报销。" },
+                { word: "settle", meaning: "和解", exampleEn: "They have decided to settle out of court rather than fight a public court case.", exampleCn: "他们决定庭外和解，而不是打一场公开的官司。" },
+                { word: "solve", meaning: "解决", exampleEn: "Can't we solve those remaining minor issues and reach an agreement?", exampleCn: "我们难道不能解决那些剩下的小问题并达成协议吗？" },
+                { word: "contrary to", meaning: "与......相反的", exampleEn: "Contrary to the agreement, Part A has been exporting goods to a third country.", exampleCn: "与协议相反，A方一直在向第三国出口货物。" },
+                { word: "for a period of", meaning: "为期", exampleEn: "This contract is valid for a period of five years from the date it is signed.", exampleCn: "本合同自签订之日起有效期为五年。" },
+                { word: "object to", meaning: "反对", exampleEn: "The lawyer representing the company objected strongly to the cancellation of the negotiations.", exampleCn: "代表公司的律师强烈反对取消谈判。" },
+                { word: "somebody's responsibility to", meaning: "某人的责任", exampleEn: "As a qualified lawyer, it is Ms. Lawson's responsibility to review and revise all our company's purchasing contracts.", exampleCn: "作为一名合格的律师，劳森女士有责任审查和修改我们公司所有的采购合同。" },
+                { word: "settle a lawsuit", meaning: "解决诉讼", exampleEn: "The legal advice we have received suggests we should try to settle the lawsuit as quickly as possible.", exampleCn: "我们收到的法律建议是，我们应尽快设法解决这起诉讼。" }
+            ],
+            "采购与仓储 Purchasing & Warehousing": [
+                { word: "cargo", meaning: "货物", exampleEn: "I'm afraid your cargo won't arrive at the port for another three days.", exampleCn: "恐怕您的货物还要三天才能到达港口。" },
+                { word: "carrier", meaning: "运输公司", exampleEn: "Although the carrier is more expensive, it is by far the most reliable.", exampleCn: "虽然这家运输公司比较贵，但它是迄今为止最可靠的。" },
+                { word: "charge", meaning: "费用", exampleEn: "Please note that this invoice does not include freight or insurance charges.", exampleCn: "请注意，此发票不包括运费或保险费。" },
+                { word: "container", meaning: "货柜", exampleEn: "We shipped a container of monitors to the customer last week.", exampleCn: "我们上周向客户运送了一个集装箱的显示器。" },
+                { word: "courier", meaning: "快递公司", exampleEn: "According to the courier, the package arrived in San Francisco this morning.", exampleCn: "据快递公司称，包裹今天早上抵达了旧金山。" },
+                { word: "customs", meaning: "海关", exampleEn: "Until the import duty is paid, the vehicle will remain in customs.", exampleCn: "在缴清进口关税之前，车辆将一直存放在海关。" },
+                { word: "freight", meaning: "货物", exampleEn: "The freight company will deliver the container on Saturday morning.", exampleCn: "货运公司将在周六早上运送集装箱。" },
+                { word: "insurance", meaning: "保险", exampleEn: "Our insurance will cover any damage that might occur during transportation.", exampleCn: "我们的保险将承保运输过程中可能发生的任何损坏。" },
+                { word: "inventory", meaning: "存货", exampleEn: "We need extra staff to help count the inventory in the warehouse.", exampleCn: "我们需要额外的工作人员来帮助清点仓库里的存货。" },
+                { word: "invoice", meaning: "发票", exampleEn: "There is a problem with this invoice. The shipment number is incorrect.", exampleCn: "这张发票有问题。装运号不正确。" },
+                { word: "packaging", meaning: "包装", exampleEn: "The packaging is certainly strong enough to protect the product during shipment.", exampleCn: "这种包装肯定足够坚固，可以在运输过程中保护产品。" },
+                { word: "port", meaning: "港口", exampleEn: "The carrier has given us a choice of two different ports in Europe.", exampleCn: "承运人给了我们两个不同的欧洲港口供选择。" },
+                { word: "purchase order", meaning: "采购订单", exampleEn: "We've just received a purchase order for twenty exercise bikes.", exampleCn: "我们刚收到一张二十辆健身车的采购订单。" },
+                { word: "stock", meaning: "存货", exampleEn: "Unfortunately, the items you have ordered are currently out of stock.", exampleCn: "不幸的是，您订购的商品目前缺货。" },
+                { word: "warehouse", meaning: "仓库", exampleEn: "Our delivery truck leaves the warehouse at 9 A.M. every morning.", exampleCn: "我们的送货卡车每天早上9点离开仓库。" },
+                { word: "assure", meaning: "保证", exampleEn: "The freight company assured me that the container will arrive in port today.", exampleCn: "货运公司向我保证集装箱今天会到港。" },
+                { word: "deliver", meaning: "运送", exampleEn: "We will deliver the shipment to your warehouse by Friday at the latest.", exampleCn: "我们最迟将在周五前将货物运送到您的仓库。" },
+                { word: "estimate", meaning: "估计", exampleEn: "The purchasing department estimates that our current stock will last until next month.", exampleCn: "采购部估计我们目前的库存将持续到下个月。" },
+                { word: "exchange", meaning: "兑换", exampleEn: "Shirley thinks that now is a good time to exchange US dollars for euros.", exampleCn: "雪莉认为现在是把美元兑换成欧元的好时机。" },
+                { word: "export", meaning: "出口", exampleEn: "Tentek exports electronic components to markets in the Middle East and Africa.", exampleCn: "Tentek向中东和非洲市场出口电子元件。" },
+                { word: "inspect", meaning: "检查", exampleEn: "Customs will inspect the import documentation at the port of arrival.", exampleCn: "海关将在抵达港检查进口文件。" },
+                { word: "import", meaning: "进口", exampleEn: "Marian works for a trading company that imports furniture from Sweden.", exampleCn: "玛丽安在一家从瑞典进口家具的贸易公司工作。" },
+                { word: "order", meaning: "订购", exampleEn: "We ordered some copy paper last week, but it hasn't arrived yet.", exampleCn: "我们上周订购了一些复印纸，但还没有到货。" },
+                { word: "permit", meaning: "许可", exampleEn: "You are not permitted to ship flammable goods by courier.", exampleCn: "您不被允许通过快递运送易燃物品。" },
+                { word: "purchase", meaning: "采购", exampleEn: "The Australia-based air carrier has just purchased four new cargo planes.", exampleCn: "这家总部位于澳大利亚的航空公司刚刚购买了四架新的货机。" },
+                { word: "ship", meaning: "运送", exampleEn: "We assure you the toys you ordered will be shipped before Christmas.", exampleCn: "我们向您保证，您订购的玩具将在圣诞节前发货。" },
+                { word: "store", meaning: "存放", exampleEn: "Aside from the items on display, our goods are stored in the warehouse.", exampleCn: "除了陈列的商品外，我们的货物都存放在仓库里。" },
+                { word: "supply", meaning: "供给", exampleEn: "Skytrans has recently won a contract to supply TessAir with in-flight meals.", exampleCn: "Skytrans最近赢得了一份为TessAir提供机上餐食的合同。" },
+                { word: "track", meaning: "追踪", exampleEn: "Courier companies use barcode technology to track international shipments.", exampleCn: "快递公司使用条形码技术来追踪国际货运。" },
+                { word: "unload", meaning: "卸下", exampleEn: "The container of Italian shoes is being unloaded at the warehouse.", exampleCn: "装满意大利鞋的集装箱正在仓库卸货。" },
+                { word: "be expected to", meaning: "期望;预期", exampleEn: "The shipment is expected to be delivered to the warehouse sometime tomorrow afternoon.", exampleCn: "货物预计明天下午某个时候送到仓库。" },
+                { word: "contact somebody for help", meaning: "找某人协助", exampleEn: "Please contact our shipping department for help in processing your import documents.", exampleCn: "请联系我们的船务部门以协助处理您的进口文件。" },
+                { word: "in stock", meaning: "有存货的", exampleEn: "The part that you are looking for is no longer in stock. We will order it from the supplier today.", exampleCn: "您正在寻找的零件已经没有库存了。我们今天会向供应商订购。" },
+                { word: "keep track of", meaning: "追踪......的状况", exampleEn: "We use a barcode system to keep track of the whereabouts of all packages sent by our customs.", exampleCn: "我们使用条形码系统来追踪所有由我们海关寄出的包裹的下落。" },
+                { word: "make a note of", meaning: "把......记下来", exampleEn: "Please make a note of your invoice number in case you need to contact us regarding your purchase.", exampleCn: "请记下您的发票号码，以备您需要就购买事宜与我们联系。" }
+            ],
+            "商用不动产 Corporate Property": [
+                { word: "condition", meaning: "状况", exampleEn: "The office is in excellent condition and very close to public transportation.", exampleCn: "这间办公室状况极佳，而且非常靠近公共交通。" },
+                { word: "damage", meaning: "损坏", exampleEn: "Water from the broken pipe caused extensive damage to the floor below.", exampleCn: "破裂水管漏水对楼下地板造成了广泛的损坏。" },
+                { word: "design", meaning: "设计", exampleEn: "The design of the office facilitates communication between coworkers.", exampleCn: "办公室的设计便于同事之间的沟通。" },
+                { word: "location", meaning: "地点", exampleEn: "We are searching for an office location somewhere near the train station.", exampleCn: "我们正在寻找一个靠近火车站的办公地点。" },
+                { word: "meter", meaning: "测量表", exampleEn: "The gas and electricity company reads the meter once every two months.", exampleCn: "燃气和电力公司每两个月抄一次表。" },
+                { word: "occupant", meaning: "居住者", exampleEn: "The occupant in 1607 is moving out at the end of the month.", exampleCn: "1607的住户将在月底搬出。" },
+                { word: "plumber", meaning: "水电工", exampleEn: "It looks like the drain is blocked again. Let's call the plumber.", exampleCn: "看起来下水道又堵了。我们叫个水电工吧。" },
+                { word: "premises", meaning: "建筑物", exampleEn: "The premises are being renovated in preparation for the summer vacation.", exampleCn: "该处房产正在进行翻新，为暑假做准备。" },
+                { word: "project", meaning: "企划", exampleEn: "Several top international design companies are bidding for this project.", exampleCn: "几家顶尖的国际设计公司正在竞标这个项目。" },
+                { word: "property", meaning: "房地产", exampleEn: "The property will be on the market as soon as the current tenants move out.", exampleCn: "一旦现有租户搬出，该房产将立即上市。" },
+                { word: "renovation", meaning: "整修", exampleEn: "I'm afraid the renovations are taking longer than we originally expected.", exampleCn: "恐怕这次翻修比我们原先预期的要花更长的时间。" },
+                { word: "repair", meaning: "修理", exampleEn: "Repairs to the air conditioning system will probably take all day.", exampleCn: "修理空调系统可能需要一整天的时间。" },
+                { word: "space", meaning: "空间", exampleEn: "There is not enough space in the boardroom for a large projector screen.", exampleCn: "会议室没有足够的空间容纳一个大的投影屏幕。" },
+                { word: "tenant", meaning: "房客", exampleEn: "The tenant has signed the lease for a further 12 months.", exampleCn: "房客已经续签了12个月的租约。" },
+                { word: "utilities", meaning: "水电煤气费", exampleEn: "The rent includes the building management fee but does not cover utilities.", exampleCn: "租金包括大楼管理费，但不包括水电煤气费。" },
+                { word: "access", meaning: "进入", exampleEn: "To access the building, a personalized company key card is required.", exampleCn: "进入大楼需要个人化的公司钥匙卡。" },
+                { word: "advise", meaning: "建议", exampleEn: "The landlord advised the tenants to call a plumber to fix the leak.", exampleCn: "房东建议租户打电话给水管工修理漏水处。" },
+                { word: "allow", meaning: "许可", exampleEn: "Pets are not allowed in this apartment complex.", exampleCn: "这个公寓大楼不允许养宠物。" },
+                { word: "attach", meaning: "附上", exampleEn: "An inventory of the furniture in the apartment is attached to the lease.", exampleCn: "公寓内的家具清单附在租约上。" },
+                { word: "build", meaning: "建造", exampleEn: "Building a new factory would probably be cheaper than renovating this one.", exampleCn: "建一个新工厂可能比翻新这个旧的更便宜。" },
+                { word: "construct", meaning: "建设", exampleEn: "Several old houses were pulled down to construct the new office building.", exampleCn: "为了建造新的办公楼，几座旧房子被拆除了。" },
+                { word: "handle", meaning: "处理", exampleEn: "The real estate agency will handle all the paperwork regarding the purchase.", exampleCn: "房地产中介将处理所有关于购买的文书工作。" },
+                { word: "lease", meaning: "租用", exampleEn: "The best solution is to lease a warehouse in the neighborhood.", exampleCn: "最好的解决办法是在附近租一个仓库。" },
+                { word: "maintain", meaning: "维修;维持", exampleEn: "The building manages a guesthouse in a well-known seaside resort town.", exampleCn: "该建筑在著名的海滨度假小镇管理着一家宾馆。" },
+                { word: "manage", meaning: "管理", exampleEn: "The building manages a guesthouse in a well-known seaside resort town.", exampleCn: "这座大楼在一个著名的海滨度假小镇管理着一家宾馆。" },
+                { word: "operate", meaning: "操作;经营", exampleEn: "Could you please show me how to operate the service elevator?", exampleCn: "你能教我如何操作货运电梯吗？" },
+                { word: "perform", meaning: "执行", exampleEn: "The maintenance crew performs regular maintenance on the bridge.", exampleCn: "维修人员定期对桥梁进行维护。" },
+                { word: "relocate", meaning: "迁移", exampleEn: "If we can find a suitable property, we'll relocate before the summer.", exampleCn: "如果我们能找到合适的房产，我们将在夏天之前搬迁。" },
+                { word: "remove", meaning: "移除", exampleEn: "Jessica is talking to a contractor about removing the old air conditioners.", exampleCn: "杰西卡正在和承包商讨论拆除旧空调的事。" },
+                { word: "repair", meaning: "修理", exampleEn: "Thomas has called an electrician to repair the faulty fire alarm.", exampleCn: "托马斯已经叫了电工来修理有故障的火警。" },
+                { word: "be out of service", meaning: "不提供服务", exampleEn: "The building supervisor has informed us that the main elevator will be out of service.", exampleCn: "大楼主管通知我们主电梯将暂停服务。" },
+                { word: "can be solved", meaning: "可以解决", exampleEn: "Most problems with air conditioners can be solved by a simple repair or adjustment.", exampleCn: "大多数空调问题都可以通过简单的修理或调整来解决。" },
+                { word: "be exposed to", meaning: "暴露于", exampleEn: "Real estate in that area is cheaper on account of being more exposed to dust and noise from passing traffic.", exampleCn: "那个地区的房地产比较便宜，因为更多地暴露在过往交通的灰尘和噪音中。" },
+                { word: "give attention to", meaning: "着重于", exampleEn: "In the design of the building, special attention was given to allowing natural sunlight to brighten the office space.", exampleCn: "在建筑设计中，特别注重让自然阳光照亮办公空间。" },
+                { word: "in working order", meaning: "正常运转", exampleEn: "Since the repairs were carried out, the central air conditioning system is now in good working order.", exampleCn: "自从进行了维修，中央空调系统现在运转良好。" }
+            ],
+            "科技硬件 Technology": [
+                { word: "appliance", meaning: "器具:设备", exampleEn: "Several appliances in the staff kitchen are in urgent need of repair.", exampleCn: "员工厨房里的几件电器急需修理。" },
+                { word: "compatible", meaning: "兼容", exampleEn: "This software application should be compatible with your notebook computer.", exampleCn: "这个软件应用程序应该与您的笔记本电脑兼容。" },
+                { word: "connection", meaning: "连接", exampleEn: "Our service provider assured us that our Internet connection is now much faster.", exampleCn: "我们的服务提供商向我们保证，我们的网络连接现在快多了。" },
+                { word: "consultant", meaning: "顾问", exampleEn: "We hired a consultant to design and test the automated production lines.", exampleCn: "我们聘请了一位顾问来设计和测试自动化生产线。" },
+                { word: "device", meaning: "仪器", exampleEn: "That small device on the bench measures the strength of the battery.", exampleCn: "工作台上的那个小装置是用来测量电池强度的。" },
+                { word: "equipment", meaning: "装备", exampleEn: "Rather than repairing the equipment, it might be cheaper to replace it.", exampleCn: "与其修理设备，不如更换它可能更便宜。" },
+                { word: "laboratory", meaning: "实验室", exampleEn: "Our research into new materials is carried out in the R&D laboratory.", exampleCn: "我们对新材料的研究是在研发实验室进行的。" },
+                { word: "monitor", meaning: "屏幕;监督", exampleEn: "The new flat screen monitor is perfect for displaying sales presentations.", exampleCn: "新的平板显示器非常适合展示销售演示文稿。" },
+                { word: "password", meaning: "密码", exampleEn: "To prevent fraud, you are advised to change your password every month.", exampleCn: "为防止欺诈，建议您每月更换一次密码。" },
+                { word: "photocopier", meaning: "复印机", exampleEn: "Let's call the technician again! The photocopier is still jamming.", exampleCn: "再给技术员打个电话吧！复印机还在卡纸。" },
+                { word: "printer", meaning: "打印机", exampleEn: "I replaced the color ink cartridge in the printer this morning.", exampleCn: "我今天早上更换了打印机里的彩色墨盒。" },
+                { word: "replacement", meaning: "替代", exampleEn: "While our forklift is being repaired, we'll need to find a replacement.", exampleCn: "在我们的叉车修理期间，我们需要找一个替代品。" },
+                { word: "scanner", meaning: "扫描仪", exampleEn: "The new scanner produces color images that are the same quality as photographs.", exampleCn: "新的扫描仪产生的彩色图像质量与照片相同。" },
+                { word: "service provider", meaning: "服务业者", exampleEn: "Our service provider advised us that the network will be down all morning.", exampleCn: "我们的服务提供商通知我们，网络整个上午都会中断。" },
+                { word: "technical", meaning: "技术的", exampleEn: "For any technical questions regarding installation, please refer to the product manual.", exampleCn: "有关安装的任何技术问题，请参阅产品手册。" },
+                { word: "avoid", meaning: "避免", exampleEn: "To avoid overheating, you must ensure that the cooling system is operating.", exampleCn: "为避免过热，您必须确保冷却系统正在运行。" },
+                { word: "cause", meaning: "引起", exampleEn: "A faulty battery caused the cell phone to suddenly catch on fire.", exampleCn: "一个有故障的电池导致手机突然着火。" },
+                { word: "control", meaning: "控制", exampleEn: "Controlling the cutting machine requires experience and technical training.", exampleCn: "控制切割机需要经验和技术培训。" },
+                { word: "develop", meaning: "发展;开发", exampleEn: "Our engineers are developing a system that can indicate potential problems.", exampleCn: "我们的工程师正在开发一个可以指示潜在问题的系统。" },
+                { word: "produce", meaning: "生产", exampleEn: "The laboratory is now producing solar batteries that last much longer.", exampleCn: "该实验室现在生产的太阳能电池使用寿命更长。" },
+                { word: "indicate", meaning: "表示", exampleEn: "The flashing red light indicates that the oil level is too low.", exampleCn: "闪烁的红灯表示油位过低。" },
+                { word: "install", meaning: "安装", exampleEn: "Installing the software is easy as long as your system is compatible.", exampleCn: "只要您的系统兼容，安装该软件就很容易。" },
+                { word: "last", meaning: "持续", exampleEn: "We estimate that the new photocopier should last at least three years.", exampleCn: "我们估计新复印机至少能用三年。" },
+                { word: "lead", meaning: "率领", exampleEn: "Patrick leads a team of technicians and engineers who service high-speed elevators.", exampleCn: "帕特里克领导一个由技术人员和工程师组成的团队，负责维修高速电梯。" },
+                { word: "measure", meaning: "测量", exampleEn: "That device measures the quality of air inside and outside the factory.", exampleCn: "那个装置测量工厂内外的空气质量。" },
+                { word: "reduce", meaning: "减少", exampleEn: "This technology, developed in Germany, can help reduce greenhouse gas emissions.", exampleCn: "这项在德国开发的技术有助于减少温室气体排放。" },
+                { word: "replace", meaning: "取代", exampleEn: "The mechanic says we will need to replace the motor soon.", exampleCn: "修理工说我们很快就需要更换马达。" },
+                { word: "manufacture", meaning: "制造", exampleEn: "The research grant went to a company that manufactures solar panels.", exampleCn: "这项研究经费拨给了一家生产太阳能电池板的公司。" },
+                { word: "shake", meaning: "摇动", exampleEn: "After you've added the color, this equipment shakes the paint thoroughly.", exampleCn: "添加颜色后，这个设备会彻底摇匀油漆。" },
+                { word: "withstand", meaning: "承受", exampleEn: "This type of ceramic material is able to withstand extremely high temperatures.", exampleCn: "这种陶瓷材料能够承受极高的温度。" },
+                { word: "a method of", meaning: "........的方法、技术", exampleEn: "The engineering production team developed a method of reducing electricity consumption in the factory by 30 percent.", exampleCn: "工程生产团队开发了一种将工厂用电量减少30%的方法。" },
+                { word: "allow to", meaning: "允许(某人)做.......", exampleEn: "The new manufacturing process allows us to produce larger quantities of solar cells faster.", exampleCn: "新的制造工艺使我们能够更快地生产更大数量的太阳能电池。" },
+                { word: "be compatible with", meaning: "和......兼容", exampleEn: "The new software is totally compatible with the computer system we currently have in the office.", exampleCn: "新软件与我们办公室现有的计算机系统完全兼容。" },
+                { word: "evidence of", meaning: "......之实证", exampleEn: "The R&D team found evidence of extreme heat, which indicated that the battery had a serious problem.", exampleCn: "研发团队发现了极端高温的证据，这表明电池存在严重问题。" },
+                { word: "convince somebody of something", meaning: "说服某人", exampleEn: "The expensive breakdown of the machine convinced the company of the need for more regular maintenance.", exampleCn: "昂贵的机器故障使公司相信需要更定期的维护。" }
+            ]
+        };
+
+        // DOM Elements
+        const getEl = (id) => document.getElementById(id);
+        const elements = {
+            card: getEl('card'), word: getEl('word'), phonetic: getEl('phonetic'),
+            meaning: getEl('meaning'), exampleEn: getEl('exampleEn'), exampleCn: getEl('exampleCn'),
+            wordSpeaker: getEl('wordSpeaker'), exampleSpeaker: getEl('exampleSpeaker'),
+            exampleSpeakerFront: getEl('exampleSpeakerFront'), flipBtn: getEl('flipBtn'),
+            prevBtn: getEl('prevBtn'), nextBtn: getEl('nextBtn'), randomBtn: getEl('randomBtn'),
+            speakWordBtn: getEl('speakWordBtn'), speakExampleBtn: getEl('speakExampleBtn'),
+            counter: getEl('counter'), progressBar: getEl('progressBar'), chapterList: getEl('chapterList'),
+            chapterTitle: getEl('chapterTitle'), sidebar: getEl('sidebar'), sidebarToggle: getEl('sidebarToggle'),
+            mainContainer: getEl('mainContainer')
+        };
+        
+        let currentIndex = 0;
+        let currentChapterKey = Object.keys(allWords)[0];
+        let currentWords = allWords[currentChapterKey];
+
+        const updateProgress = () => {
+            const progress = ((currentIndex + 1) / currentWords.length) * 100;
+            elements.progressBar.style.width = `${progress}%`;
+            elements.counter.textContent = `${currentIndex + 1}/${currentWords.length}`;
+        };
+        
+        const showWord = (index) => {
+            const wordData = currentWords[index];
+            elements.word.textContent = wordData.word;
+            elements.meaning.textContent = wordData.meaning;
+            elements.exampleEn.textContent = wordData.exampleEn;
+            elements.exampleCn.textContent = wordData.exampleCn;
+            
+            elements.phonetic.style.display = wordData.phonetic ? 'block' : 'none';
+            if (wordData.phonetic) elements.phonetic.textContent = wordData.phonetic;
+            
+            updateProgress();
+        };
+
+        const playPronunciation = (text, isExample = false) => {
+            if (!text) return;
+            window.speechSynthesis.cancel();
+
+            if (!isExample && !text.includes(" ")) { // Simple word
+                const audio = new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=1`);
+                audio.play().catch(() => playWithSpeechAPI(text)); // Fallback
+            } else { // Phrase or example sentence
+                playWithSpeechAPI(text);
+            }
+        };
+
+        const playWithSpeechAPI = (text) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("您的浏览器不支持文本转语音功能。");
+            }
+        };
+        
+        const changeWord = (newIndex) => {
+            currentIndex = newIndex;
+            showWord(currentIndex);
+            elements.card.classList.remove('flipped');
+            window.speechSynthesis.cancel();
+        };
+
+        const nextSequentialWord = () => changeWord((currentIndex + 1) % currentWords.length);
+        const prevSequentialWord = () => changeWord((currentIndex - 1 + currentWords.length) % currentWords.length);
+        
+        const nextRandomWord = () => {
+            if (currentWords.length <= 1) return;
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * currentWords.length);
+            } while (newIndex === currentIndex);
+            changeWord(newIndex);
+        };
+        
+        const loadChapter = (chapterKey) => {
+            currentChapterKey = chapterKey;
+            currentWords = allWords[chapterKey];
+            elements.chapterTitle.textContent = chapterKey;
+            changeWord(0);
+
+            // Update active button in sidebar
+            document.querySelectorAll('.chapter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.key === chapterKey);
+            });
+            if(window.innerWidth <= 992) {
+                elements.sidebar.classList.remove('open');
+            }
+        };
+        
+        const populateChapters = () => {
+            const keys = Object.keys(allWords);
+            keys.forEach((key, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'chapter-btn';
+                btn.textContent = key;
+                btn.dataset.key = key;
+                if(index === 0) btn.classList.add('active');
+                btn.addEventListener('click', () => loadChapter(key));
+                elements.chapterList.appendChild(btn);
+            });
+        };
+
+        // Event Listeners
+        elements.card.addEventListener('click', () => elements.card.classList.toggle('flipped'));
+        elements.flipBtn.addEventListener('click', () => elements.card.classList.toggle('flipped'));
+        
+        elements.prevBtn.addEventListener('click', prevSequentialWord);
+        elements.nextBtn.addEventListener('click', nextSequentialWord);
+        elements.randomBtn.addEventListener('click', nextRandomWord);
+
+        const createSpeakerListener = (element, isExample) => {
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const text = isExample ? currentWords[currentIndex].exampleEn : currentWords[currentIndex].word;
+                playPronunciation(text, isExample);
+            });
+        };
+
+        createSpeakerListener(elements.wordSpeaker, false);
+        createSpeakerListener(elements.exampleSpeaker, true);
+        createSpeakerListener(elements.exampleSpeakerFront, true);
+        createSpeakerListener(elements.speakWordBtn, false);
+        createSpeakerListener(elements.speakExampleBtn, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') { e.preventDefault(); elements.card.classList.toggle('flipped'); }
+            else if (e.code === 'ArrowRight') { nextSequentialWord(); }
+            else if (e.code === 'ArrowLeft') { prevSequentialWord(); }
+            else if (e.code === 'KeyW') { playPronunciation(currentWords[currentIndex].word, false); }
+            else if (e.code === 'KeyE') { playPronunciation(currentWords[currentIndex].exampleEn, true); }
+        });
+
+        // Sidebar Toggle
+        elements.sidebarToggle.addEventListener('click', () => elements.sidebar.classList.toggle('open'));
+        elements.mainContainer.addEventListener('click', () => {
+            if (elements.sidebar.classList.contains('open')) {
+                elements.sidebar.classList.remove('open');
+            }
+        });
+        
+        // Initial Load
+        populateChapters();
+        loadChapter(currentChapterKey);
+    </script>
+</body>
+</html>
