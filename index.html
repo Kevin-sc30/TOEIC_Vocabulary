@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>托业词汇记忆卡片 TOEIC Vocabulary Cards </title>
+    <title>托业词汇记忆卡片 TOEIC Vocabulary Cards</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -290,9 +290,10 @@
             gap: 15px;
             margin-top: 20px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
         }
         
         .btn {
@@ -313,7 +314,24 @@
         .btn:active { transform: translateY(1px); }
         
         .btn-random { background: var(--btn-random-bg); }
-        .btn-example { background: var(--btn-example-bg); }
+        .btn-example-group { display: flex; align-items: center; gap: 5px;}
+
+        .speed-controls { display: flex; background: rgba(0,0,0,0.2); border-radius: 50px; padding: 4px; }
+        .speed-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-subtle);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .speed-btn.active {
+            background: var(--text-accent);
+            color: #1a2a6c;
+            font-weight: bold;
+        }
         
         .counter {
             margin-top: 15px;
@@ -384,10 +402,10 @@
             .header h1 { font-size: 2rem; }
         }
         
-        @media (max-width: 400px) {
+        @media (max-width: 480px) {
             .card-container { height: 320px; }
             .word { font-size: 2rem; }
-            .controls { gap: 10px; }
+            .controls { gap: 10px; flex-direction: column; }
             .btn { padding: 8px 16px; font-size: 0.9rem; }
         }
         
@@ -449,7 +467,13 @@
             <button class="btn" id="flipBtn"><i class="fas fa-sync-alt"></i> 翻转卡片</button>
             <button class="btn btn-random" id="randomBtn"><i class="fas fa-random"></i> 随机下一个</button>
             <button class="btn" id="speakWordBtn"><i class="fas fa-volume-up"></i> 单词发音</button>
-            <button class="btn btn-example" id="speakExampleBtn"><i class="fas fa-quote-right"></i> 例句发音</button>
+            <div class="btn-example-group">
+                <button class="btn" id="speakExampleBtn" style="border-top-right-radius: 0; border-bottom-right-radius: 0;"><i class="fas fa-quote-right"></i> 例句发音</button>
+                <div class="speed-controls" id="speedControls">
+                    <button class="speed-btn active" data-speed="1">常规</button>
+                    <button class="speed-btn" data-speed="0.5">慢速</button>
+                </div>
+            </div>
         </div>
         
         <div class="counter" id="counter"></div>
@@ -1036,12 +1060,13 @@
             speakWordBtn: getEl('speakWordBtn'), speakExampleBtn: getEl('speakExampleBtn'),
             counter: getEl('counter'), progressBar: getEl('progressBar'), chapterList: getEl('chapterList'),
             chapterTitle: getEl('chapterTitle'), sidebar: getEl('sidebar'), sidebarToggle: getEl('sidebarToggle'),
-            mainContainer: getEl('mainContainer')
+            mainContainer: getEl('mainContainer'), speedControls: getEl('speedControls')
         };
         
         let currentIndex = 0;
         let currentChapterKey = Object.keys(allWords)[0];
         let currentWords = allWords[currentChapterKey];
+        let currentPlaybackRate = 1.0; // Default speed is normal (1x)
 
         const updateProgress = () => {
             const progress = ((currentIndex + 1) / currentWords.length) * 100;
@@ -1068,17 +1093,18 @@
 
             if (!isExample && !text.includes(" ")) { // Simple word
                 const audio = new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=1`);
-                audio.play().catch(() => playWithSpeechAPI(text)); // Fallback
+                audio.play().catch(() => playWithSpeechAPI(text, 1.0)); // Fallback at normal speed
             } else { // Phrase or example sentence
-                playWithSpeechAPI(text);
+                const rate = isExample ? currentPlaybackRate : 1.0;
+                playWithSpeechAPI(text, rate);
             }
         };
 
-        const playWithSpeechAPI = (text) => {
+        const playWithSpeechAPI = (text, rate) => {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
-                utterance.rate = 0.9;
+                utterance.rate = rate; // Use the passed-in rate
                 utterance.pitch = 1.1;
                 window.speechSynthesis.speak(utterance);
             } else {
@@ -1154,6 +1180,14 @@
         createSpeakerListener(elements.exampleSpeakerFront, true);
         createSpeakerListener(elements.speakWordBtn, false);
         createSpeakerListener(elements.speakExampleBtn, true);
+
+        elements.speedControls.addEventListener('click', (e) => {
+            if (e.target.classList.contains('speed-btn')) {
+                currentPlaybackRate = parseFloat(e.target.dataset.speed);
+                elements.speedControls.querySelector('.active').classList.remove('active');
+                e.target.classList.add('active');
+            }
+        });
 
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') { e.preventDefault(); elements.card.classList.toggle('flipped'); }
